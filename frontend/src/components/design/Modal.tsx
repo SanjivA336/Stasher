@@ -1,0 +1,43 @@
+import React from "react";
+
+type ModalProps = {
+    title: string;
+    showModal: boolean;
+    setShowModal: (show: boolean) => void;
+    children: React.ReactNode;
+    onClose?: () => void;
+
+    height?: string
+    width?: string
+};
+
+const Modal = ({ title, showModal, setShowModal, children, onClose, height="100", width="100" }: ModalProps) => {
+    if (!showModal) return null;
+
+    const handleClose = () => {
+        setShowModal(false);
+        if (onClose) onClose();
+    }
+
+    return (
+        <div className="vw-100 vh-100 fixed-top d-flex flex-column justify-content-center align-items-center p-5" tabIndex={-1} role="dialog" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+            <div className="col-lg-9 col-12 text-light p-4 rounded-4 bg-dark overflow-y-auto mh-100">
+                <div className="d-flex flex-row justify-content-between align-items-center m-2">
+                    <h3 className="d-flex flex-column align-content-between m-0">
+                        {title}
+                        
+                    </h3>
+                    <button type="button" className="btn btn-outline-danger" onClick={handleClose}>
+                        ✖
+                    </button>
+                </div>
+                <hr />
+                <div className="d-flex flex-column gap-3 p-3 overflow-y-auto">
+                    {children}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Modal;

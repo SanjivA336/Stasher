@@ -1,0 +1,123 @@
+@use 'sass:color';
+
+// === Global Mixing Settings ===
+$bg-subtle-mix-pct: 90% !default;        // Controls how light the bg-subtle variant is
+$border-subtle-mix-pct: 75% !default;    // Controls how light the border-subtle variant is
+$text-emphasis-mix-pct: 80% !default;    // Controls how dark the text-emphasis variant is
+
+// === Main Theme Colors ===
+$primary:   #3cca8a;     // Primary brand color (buttons, links)
+$secondary: #348AA7;     // Secondary brand (secondary buttons, accents)
+$success:   #57A773;     // Success (alerts, badges)
+$danger:    #f55742;     // Danger (errors, destructive actions)
+$warning:   #ffcd29;     // Warning (warnings, alerts)
+$info:      #08B2E3;     // Info (informational)
+$light:     #FAFFFD;     // Light backgrounds and borders
+$dark:      #342E37;     // Dark backgrounds and text
+
+// === Register Theme Colors as Map ===
+// === Configurable mix percentages ===
+$bg-subtle-mix-pct: 5%;         // Background subtlety
+
+
+// === Grayscale Palette (Bootstrap defaults) ===
+$gray-100: #f8f9fa !default;     // Near white (backgrounds, borders)
+$gray-200: #e9ecef !default;
+$gray-300: #dee2e6 !default;
+$gray-400: #ced4da !default;
+$gray-500: #adb5bd !default;     // Medium gray (secondary text)
+$gray-600: #6c757d !default;     // Dark gray (text)
+$gray-700: #495057 !default;
+$gray-800: #343a40 !default;
+$gray-900: #212529 !default;     // Near black (text, borders)
+
+// === Other Brand Colors (Bootstrap defaults) ===
+$blue:   #0d6efd !default;
+$indigo: #6610f2 !default;
+$purple: #6f42c1 !default;
+$pink:   #d63384 !default;
+$red:    #dc3545 !default;
+$orange: #fd7e14 !default;
+$yellow: #ffc107 !default;
+$green:  #198754 !default;
+$teal:   #20c997 !default;
+$cyan:   #0dcaf0 !default;
+
+// === Body Colors ===
+$body-bg:    #18181a;      // Page background color
+$body-color: #f0f0f0;      // Body text color
+
+// === Fonts ===
+$font-family-sans-serif: 'Cal Sans', sans-serif !default;     // UI and display sans-serif
+$font-family-monospace:  'Roboto Mono', monospace !default;   // Code font
+$font-family-serif:      'Arvo', serif !default;              // Serif font
+$font-family-base:       'Outfit', sans-serif !default;     // Body font
+
+// === Typography Overrides ===
+
+// Headings use Calsans (display font)
+h1, h2, h3, h4, h5, h6 {
+    font-family: $font-family-sans-serif;
+}
+
+// Paragraphs and general text use Lexend (body font)
+body, p, span, li, blockquote, dd, dt, th, td {
+    font-family: $font-family-base;
+}
+
+.bg-darker {
+    background-color: color.mix(black, $dark, 25%);
+}
+
+.bg-darkest {
+    background-color: color.mix(black, $dark, 50%);
+}
+
+.bg-darkish {
+    background-color: color.mix(rgb(255, 255, 255), $dark, 10%);
+}
+
+.border-darker {
+    border-color: color.mix(black, $dark, 25%) !important;
+}
+
+.border-darkest {
+    border-color: color.mix(black, $dark, 50%) !important;
+}
+
+.border-darkish {
+    border: solid color.mix(rgb(255, 255, 255), $dark, 10%) !important;
+}
+
+.bg-danger-subtle-dark {
+    background-color: color.mix($danger, $dark, $bg-subtle-mix-pct);
+}
+
+.bg-warning-subtle-dark {
+    background-color: color.mix($warning, $dark, $bg-subtle-mix-pct);
+}
+
+.bg-info-subtle-dark {
+    background-color: color.mix($info, $dark, $bg-subtle-mix-pct);
+}
+
+.bg-success-subtle-dark {
+    background-color: color.mix($success, $dark, $bg-subtle-mix-pct);
+}
+
+.scrollbar-hidden {
+    scrollbar-width: none; // Firefox
+    -ms-overflow-style: none; // IE/Edge
+    &::-webkit-scrollbar {
+        display: none; // Chrome/Safari
+    }
+}
+
+.Toastify__toast {
+    background-color: $dark !important; // Override toast background
+    color: $light !important; // Override toast text color
+    font-family: $font-family-base;    
+}
+
+// === Import Bootstrap with overrides applied ===
+@import 'bootstrap/scss/bootstrap.scss';
