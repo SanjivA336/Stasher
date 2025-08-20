@@ -1,43 +1,49 @@
-# Legends
+# Stasher
 
-Legends is a **web-based AI-assisted game engine** inspired by **Dungeons & Dragons** and **AI Dungeon**. It combines the **flexibility of freeform storytelling** with the **structure of rule-based systems**, enabling solo or group play in customizable campaigns.
+Stasher is a **web-based collaborative food storage and inventory management platform** designed to track pantries, fridges, freezers, gardens, and other containers. The system combines **ease of use**, **structured organization**, and **flexible customization**, enabling households to reduce waste and maintain visibility across shared and personal items.
 
----
+***
 
 ## Core Features
 
-### Library Management
+### Inventory Management
 
-* **Users / Members**: Distinguishes between global accounts and campaign-specific roles.
-* **Worlds & Campaigns**: Worlds serve as templates; campaigns are independent instances.
-* **Blueprints & Objects**: Fully customizable, reusable templates for game elements.
-* **Contexts**: Free-form narrative or lore storage.
+* **Users / Members**: Global user accounts; kitchen-specific member roles and permissions.
+* **Kitchens & Storages**: Kitchens represent collaborative households; storages (fridge, pantry, etc.) are customizable sublocations.
+* **Registry Entries & Items**: Item templates (registry entries) simplify entry and suggest popular items; items track quantities, expiry, cost, ownership, and usage history.
+* **Batch Operations & Search**: Perform efficient updates, filtering, and searches across large inventories.
 
-### Quest System
+### Purchase & Usage Tracking
 
-* **Main Quests**: Structured, multi-objective storylines that drive campaign progression.
-* **Side Quests**: Optional, player-driven tasks that integrate dynamically with the main narrative.
+* Log new items, purchases, and consumption.
+* Member-specific usage history.
+* Real-time quantity updates for all items.
+* Cost tracking and analytical reporting of usage patterns.
 
-### Timeline System
+### Notifications & Alerts
 
-* Hierarchical progression of events:
-  **Era → Chapter → Encounter → Action → Check**.
-* Player actions require DM (human or AI) approval and may trigger skill checks.
-* Checks can be resolved via **dice rolls** or **interactive minigames**.
-* Designed for **traceability and replayability**, presented in a **chat-style UI**.
+* Expiry warnings for perishable items.
+* Low stock and out-of-stock notifications.
+* Usage alerts for high consumption by specific members.
+* Customizable notification settings per kitchen.
 
----
+### User Experience & Interface
+
+* Visual dashboards for quick inventory overview.
+* Intuitive drag-and-drop for moving items.
+* Autocomplete for frequent or popular items.
+* Optional detailed views of item history and trends.
+* Responsive UI with color-coding and visual cues.
+
+***
 
 ## Future Extensions
 
-* **UI Enhancements**: Mentions system, blueprint typing, interrupt mechanics.
-* **AI Gameplay**: AI game masters, AI-Controlled party members (personality influenced by Actor profile), customization of AI tools.
-* **Inventory System**: Equipable objects, slot validation, gameplay integration.
-* **Realm Maps**: Hierarchical spatial modeling (Realms → Regions → Sites → Cells), with optional AI map generation.
-* **Reputation System**: Player and faction reputation influencing NPC behavior and world state.
-* **Era System**: Campaign timeskips, evolving worlds, and persistent player “legends.”
+* **Shopping List Automation**: Inventory-level and expiry-driven lists, manual additions, and actionable restocking tools.
+* **Recipe System**: Store, share, and validate recipes against inventory; auto-link missing ingredients to shopping lists.
+* **Grocery Service Integration**: One-click submission of shopping lists to third-party delivery services; planned support for automated, scheduled reordering.
 
----
+***
 
 ## Getting Started
 
