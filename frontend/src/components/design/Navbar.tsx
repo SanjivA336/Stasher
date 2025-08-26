@@ -3,7 +3,7 @@ import { logout } from "@/apis/auth_api";
 import React from "react";
 
 import Logo from "@/assets/brand/LogoAccent.png";
-import ButtonField from "./fields/ButtonField";
+import ButtonField from "@/components/fields/ButtonField";
 export const NAVBAR_HEIGHT = "70px";
 
 const Navbar = () => {

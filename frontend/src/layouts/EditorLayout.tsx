@@ -1,5 +1,4 @@
 import React from "react";
-import Navbar from "@/components/design/Navbar";
 
 type HomeLayoutProps = {
     children: React.ReactNode;
@@ -8,9 +7,6 @@ type HomeLayoutProps = {
 export default function HomeLayout({ children }: HomeLayoutProps) {
     return (
         <div className="w-100 d-flex flex-column align-items-center bg-darkest text-light">
-            {/* Navbar */}
-            <Navbar />
-
             {/* Page content */}
             <div className="w-100 h-auto container p-2">
                 {children}

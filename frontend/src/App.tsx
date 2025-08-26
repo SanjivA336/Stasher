@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import GuestOnlyRoute from "@/components/GuestOnlyRoute";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { AuthProvider } from "@/context/AuthContext";
-import { ToastContainer, toast } from "react-toastify";
+import GuestRoute from "@/context/auth/GuestRoute";
+import ProtectedRoute from "@/context/auth/ProtectedRoute";
+import { AuthProvider } from "@/context/auth/AuthContext";
+import { StashProvider } from "./context/stash/StashContext";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // === Error Pages ===
@@ -15,25 +16,31 @@ import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 
 // === Main Pages ===
-import HomePage from "@/pages/HomePage";
+import StashesPage from "@/pages/StashesPage";
+
 
 export default function App() {
 	return (
 		<div className="w-100 h-100">
 			<BrowserRouter>
 				<AuthProvider>
-					<Routes>
-						<Route path="/login" element={<GuestOnlyRoute><LoginPage /></GuestOnlyRoute>} />
-						<Route path="/register" element={<GuestOnlyRoute><RegisterPage /></GuestOnlyRoute>} />
+					<StashProvider>
+						<Routes>
+							<Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+							<Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
 
-						{/* Protected Routes */}
+							{/* Protected Routes */}
+							<Route path="/stashes" element={<ProtectedRoute><StashesPage /></ProtectedRoute>} />
 
-						<Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+							{/* Protected Stash Routes */}
+							
 
-						<Route path="/403" element={<RequestDenied />} />
-						<Route path="/404" element={<PageNotFound />} />
-						<Route path="*" element={<Navigate to="/404" />} />
-					</Routes>
+							{/* Error Pages */}
+							<Route path="/403" element={<RequestDenied />} />
+							<Route path="/404" element={<PageNotFound />} />
+							<Route path="*" element={<Navigate to="/404" />} />
+						</Routes>
+					</StashProvider>
 				</AuthProvider>
 			</BrowserRouter>
 			<ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} closeOnClick pauseOnHover draggable pauseOnFocusLoss />

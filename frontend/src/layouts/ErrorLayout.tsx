@@ -1,15 +1,27 @@
+import ButtonField from "@/components/fields/ButtonField";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 type ErrorLayoutProps = {
     children: React.ReactNode;
 };
 
 export default function ErrorLayout({ children }: ErrorLayoutProps) {
+
+    const navigate = useNavigate();
+
     return (
-        <div className="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-darkest text-light">
-            {children}
-            <div className="mt-4">
-                <a href="/" className="btn btn-primary">Go to Homepage</a>
+        <div className="vw-100 vh-100 d-flex flex-column align-items-center justify-content-center bg-darkest text-light">
+            <div className="d-flex flex-column text-center m-1">
+                {children}
+                <ButtonField
+                    onClick={() => navigate("/stashes")}
+                    color="primary"
+                    rounding="3"
+                    className="p-2"
+                >
+                    <p className="m-0">Go to Stashes</p>
+                </ButtonField>
             </div>
         </div>
     );

@@ -9,95 +9,145 @@ UNKNOWN = "Unknown"
 UNNAMED = "Unnamed"
 
 
+
+# === === Responses === ===
+
+# === User (Protected) ===
+class UserProtected(BaseDocument):
+    username: str
+    email: EmailStr
+    member_ids: List[str] = Field(default_factory=list)
+
+    @staticmethod
+    def from_model(model: User) -> 'UserProtected':
+        
+        schema = UserProtected(
+            id=model.id,
+            created_at=model.created_at,
+            updated_at=model.updated_at,
+            username=model.username or UNKNOWN,
+            email=model.email,
+            member_ids=model.member_ids or []
+        )
+        return schema
+
+
+
 # === === Payloads === ===
-# === User ===
-class UserPayload(BaseModel):
+
+# === Base ===
+class BasePayload(BaseModel):
     id: Optional[str] = None
-    username: Optional[str] = None
+
+# === User ===
+class UserPayload(BasePayload):
     email: Optional[EmailStr] = None
+    username: Optional[str] = None
     password_current: Optional[str] = None
     password_new: Optional[str] = None
+    member_ids: Optional[List[str]] = None
 
-    def to_model(self, model: User) -> User:
+    def to_model(self, model: User, preserve: bool) -> User:
         update_data = self.model_dump(exclude_unset=True)
-        updated_model = model.model_copy(deep=True)
-        for field, value in update_data.items():
-            setattr(updated_model, field, value)
-        return updated_model
+        if preserve:
+            updated_model = model.model_copy(deep=True)
+            for field, value in update_data.items():
+                setattr(updated_model, field, value)
+            return updated_model
+        else:
+            for field, value in update_data.items():
+                setattr(model, field, value)
+            return model
 
 # === Member ===
-class MemberPayload(BaseModel):
-    id: Optional[str] = None
+class MemberPayload(BasePayload):
     owner_user_id: Optional[str] = None
-    kitchen_id: Optional[str] = None
+    stash_id: Optional[str] = None
     nickname: Optional[str] = None
+    debts: Optional[dict[str, float]] = None # {member_id: amount_owed}
     is_admin: Optional[bool] = None
+    is_active: Optional[bool] = None
 
-    def to_model(self, model: Member) -> Member:
+    def to_model(self, model: Member, preserve: bool) -> Member:
         update_data = self.model_dump(exclude_unset=True)
-        updated_model = model.model_copy(deep=True)
-        for field, value in update_data.items():
-            setattr(updated_model, field, value)
-        return updated_model
+        if preserve:
+            updated_model = model.model_copy(deep=True)
+            for field, value in update_data.items():
+                setattr(updated_model, field, value)
+            return updated_model
+        else:
+            for field, value in update_data.items():
+                setattr(model, field, value)
+            return model
 
-# === Kitchen ===
-class KitchenPayload(BaseModel):
-    id: Optional[str] = None
+# === Stash ===
+class StashPayload(BasePayload):
     name: Optional[str] = None
     address: Optional[str] = None
     member_ids: Optional[List[str]] = None
     storage_ids: Optional[List[str]] = None
-    registry_entry_ids: Optional[List[str]] = None
-    settings: Optional['KitchenSettings'] = None
-
-    def to_model(self, model: Kitchen) -> Kitchen:
+    label_ids: Optional[List[str]] = None
+    join_code: Optional[str] = None
+    
+    def to_model(self, model: Stash, preserve: bool) -> Stash:
         update_data = self.model_dump(exclude_unset=True)
-        updated_model = model.model_copy(deep=True)
-        for field, value in update_data.items():
-            setattr(updated_model, field, value)
-        return updated_model
+        if preserve:
+            updated_model = model.model_copy(deep=True)
+            for field, value in update_data.items():
+                setattr(updated_model, field, value)
+            return updated_model
+        else:
+            for field, value in update_data.items():
+                setattr(model, field, value)
+            return model
 
     
 # === Storage Settings ===
-class StoragePayload(BaseModel):
-    id: Optional[str] = None
+class StoragePayload(BasePayload):
     name: Optional[str] = None
-    kitchen_id: Optional[str] = None
+    stash_id: Optional[str] = None
     type: Optional[StorageType] = StorageType.PANTRY
     description: Optional[str] = None
     item_ids: Optional[List[str]] = None
-    ui_settings: Optional['StorageUISettings'] = None
 
-    def to_model(self, model: 'Storage') -> 'Storage':
+    def to_model(self, model: 'Storage', preserve: bool) -> 'Storage':
         update_data = self.model_dump(exclude_unset=True)
-        updated_model = model.model_copy(deep=True)
-        for field, value in update_data.items():
-            setattr(updated_model, field, value)
-        return updated_model
+        if preserve:
+            updated_model = model.model_copy(deep=True)
+            for field, value in update_data.items():
+                setattr(updated_model, field, value)
+            return updated_model
+        else:
+            for field, value in update_data.items():
+                setattr(model, field, value)
+            return model
 
-# === Registry Entry ===
-class RegistryEntryPayload(BaseModel):
-    id: Optional[str] = None
+# === Label ===
+class LabelPayload(BasePayload):
     name: Optional[str] = None
     preferred_unit: Optional[str] = None
-    kitchen_id: Optional[str] = None
+    stash_id: Optional[str] = None
     default_storage_id: Optional[str] = None
     current_quantity: Optional[float] = None
     item_ids: Optional[List[str]] = None
     food_group: Optional[str] = None
 
-    def to_model(self, model: 'RegistryEntry') -> 'RegistryEntry':
+    def to_model(self, model: 'Label', preserve: bool) -> 'Label':
         update_data = self.model_dump(exclude_unset=True)
-        updated_model = model.model_copy(deep=True)
-        for field, value in update_data.items():
-            setattr(updated_model, field, value)
-        return updated_model
+        if preserve:
+            updated_model = model.model_copy(deep=True)
+            for field, value in update_data.items():
+                setattr(updated_model, field, value)
+            return updated_model
+        else:
+            for field, value in update_data.items():
+                setattr(model, field, value)
+            return model
 
 # === Item ===
-class ItemPayload(BaseModel):
-    id: Optional[str] = None
+class ItemPayload(BasePayload):
     name: Optional[str] = None
-    registry_entry_id: Optional[str] = None
+    label_id: Optional[str] = None
     storage_id: Optional[str] = None
     buyer_member_id: Optional[str] = None
     allowed_member_usage: Optional[Dict[str, float]] = None
@@ -106,72 +156,70 @@ class ItemPayload(BaseModel):
     preferred_unit: Optional[str] = None
     cost: Optional[float] = None
     expiry_date: Optional[datetime] = None
-    
-    def to_model(self, model: 'Item') -> 'Item':
+
+    def to_model(self, model: 'Item', preserve: bool) -> 'Item':
         update_data = self.model_dump(exclude_unset=True)
-        updated_model = model.model_copy(deep=True)
-        for field, value in update_data.items():
-            setattr(updated_model, field, value)
-        return updated_model
+        if preserve:
+            updated_model = model.model_copy(deep=True)
+            for field, value in update_data.items():
+                setattr(updated_model, field, value)
+            return updated_model
+        else:
+            for field, value in update_data.items():
+                setattr(model, field, value)
+            return model
 
 # === Order ===
-class OrderPayload(BaseModel):
-    id: Optional[str] = None
-    kitchen_id: Optional[str] = None
+class OrderPayload(BasePayload):
+    stash_id: Optional[str] = None
     buyer_member_id: Optional[str] = None
     status: dict[str, 'OrderStatus'] = Field(default_factory=dict)
     item_ids: Optional[List[str]] = None
 
-    def to_model(self, model: 'Order') -> 'Order':
+    def to_model(self, model: 'Order', preserve: bool) -> 'Order':
         update_data = self.model_dump(exclude_unset=True)
-        updated_model = model.model_copy(deep=True)
-        for field, value in update_data.items():
-            setattr(updated_model, field, value)
-        return updated_model
+        if preserve:
+            updated_model = model.model_copy(deep=True)
+            for field, value in update_data.items():
+                setattr(updated_model, field, value)
+            return updated_model
+        else:
+            for field, value in update_data.items():
+                setattr(model, field, value)
+            return model
 
-# === Log ===
-class LogEntryPayload(BaseModel):
-    id: Optional[str] = None
-    kitchen_id: Optional[str] = None
+# === Event ===
+class EventPayload(BasePayload):
+    stash_id: Optional[str] = None
     member_id: Optional[str] = None
-    action: Optional[str] = None
-    details: Optional[str] = None
+    type: Optional['EventType'] = None
+    title: Optional[str] = None
+    message: Optional[str] = None
 
-    def to_model(self, model: 'LogEntry') -> 'LogEntry':
+    def to_model(self, model: 'Event', preserve: bool) -> 'Event':
         update_data = self.model_dump(exclude_unset=True)
-        updated_model = model.model_copy(deep=True)
-        for field, value in update_data.items():
-            setattr(updated_model, field, value)
-        return updated_model
+        if preserve:
+            updated_model = model.model_copy(deep=True)
+            for field, value in update_data.items():
+                setattr(updated_model, field, value)
+            return updated_model
+        else:
+            for field, value in update_data.items():
+                setattr(model, field, value)
+            return model
 
-# === === Responses === ===
-class UserProtected(BaseModel):
-    id: str
-    created_at: datetime
-    updated_at: datetime
-    username: str
-    email: EmailStr
-    member_ids: List[str] = Field(default_factory=list)
-    
-    @staticmethod
-    def from_model(model: User) -> "UserProtected":
-        schema = UserProtected(
-            id=model.id,
-            created_at=model.created_at,
-            updated_at=model.updated_at,
-            username=model.username or UNKNOWN,
-            email=model.email,
-            member_ids=model.member_ids
-        )
-        return schema
+
+
+# === === Pydantic Model Rebuilds === ===
+
+UserProtected.model_rebuild()
 
 UserPayload.model_rebuild()
 MemberPayload.model_rebuild()
-KitchenPayload.model_rebuild()
+StashPayload.model_rebuild()
 StoragePayload.model_rebuild()
-RegistryEntryPayload.model_rebuild()
+LabelPayload.model_rebuild()
 ItemPayload.model_rebuild()
 OrderPayload.model_rebuild()
-LogEntryPayload.model_rebuild()
+EventPayload.model_rebuild()
 
-UserProtected.model_rebuild()

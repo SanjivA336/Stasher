@@ -144,6 +144,42 @@ class FirestoreWrapper:
         except Exception as e:
             self._logger.error(f"Error querying {collection} with {filters}: {e}")
             return []
+        
+    # ----------------
+    # Batch Operations
+    # ----------------
+    def create_batch(self) -> firestore.WriteBatch:
+        """
+        Creates a new Firestore batch for atomic operations.
+        """
+        return self._db.batch()
+    
+    def commit_batch(self, batch: firestore.WriteBatch) -> bool:
+        """
+        Commits a Firestore batch operation.
+        Returns True if successful, False otherwise.
+        """
+        try:
+            batch.commit()
+            self._logger.info("Batch commit successful.")
+            return True
+        except Exception as e:
+            self._logger.error(f"Batch commit failed: {e}")
+            return False
+
+    def run_transaction(self, transaction_callable) -> Optional[Any]:
+        """
+        Runs a transaction with retries.
+        `transaction_func` should accept a transaction object as its first argument.
+        """
+        transaction = self._db.transaction()
+        try:
+            result = transaction_callable(transaction)
+            self._logger.info("Transaction completed successfully.")
+            return result
+        except Exception as e:
+            self._logger.error(f"Transaction failed: {e}")
+            return None
 
 # Global importable instance
 firestore_wrapper = FirestoreWrapper()

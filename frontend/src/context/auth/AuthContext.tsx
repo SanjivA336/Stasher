@@ -1,20 +1,18 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { authenticate, refresh } from "@/apis/auth_api";
-import type { UserProtected } from "@/apis/_schemas";
+import type { User } from "@/apis/_schemas";
 import { toast } from "react-toastify/unstyled";
 
 type AuthContextType = {
-    user: UserProtected | null;
-    loading: boolean;
+    user: User | null;
 };
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
-    loading: true,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<UserProtected | null>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -24,15 +22,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const userData = await authenticate();
                 setUser(userData);
             } catch (error) {
-                console.error("Authentication failed. Attempting refresh:", error);
+                toast.warning("Session expired, attempting refresh.");
                 try {
                     await refresh();
                     const userData = await authenticate();
                     setUser(userData);
                 } catch (refreshError) {
-                    console.error("Session refresh failed:", refreshError);
                     setUser(null);
-                    toast.warning("Session expired. Please log in again.");
+                    toast.error("Refresh failed. Please log in again.");
                 }
             } finally {
                 setLoading(false);
@@ -43,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, loading }}>
+        <AuthContext.Provider value={{ user }}>
             {children}
         </AuthContext.Provider>
     );

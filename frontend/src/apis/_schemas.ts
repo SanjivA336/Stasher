@@ -1,156 +1,94 @@
-// === Config ===
+import { POST_ENDPOINT, GET_ENDPOINT } from "./_api_core";
+
+// === === Config === ===
 export const EMPTY_STRING = "";
 export const UNKNOWN = "Unknown";
 export const UNNAMED = "Unnamed";
 
-// === === Payloads === ===
 
-// === User ===
-export interface UserPayload {
-    id?: string;
-    username?: string;
-    email?: string;
-    password_current?: string;
-    password_new?: string;
-}
 
-// === Member ===
-export interface MemberPayload {
-    id?: string;
-    owner_user_id?: string;
-    kitchen_id?: string;
-    nickname?: string;
-    is_admin?: boolean;
-}
+// === === Enums === ===
 
-// === Kitchen ===
-export interface KitchenPayload {
-    id?: string;
-    name?: string;
-    address?: string;
-    member_ids?: string[];
-    storage_ids?: string[];
-    registry_entry_ids?: string[];
-    settings?: KitchenSettings;
-}
+// === StorageType ===
+export const StorageType = {
+    FRIDGE: "fridge",
+    FREEZER: "freezer",
+    PANTRY: "pantry",
+    GARDEN: "garden",
+    OTHER: "other"
+} as const;
+export type StorageType = typeof StorageType[keyof typeof StorageType];
 
-// === Storage Settings ===
-export interface StoragePayload {
-    id?: string;
-    name?: string;
-    kitchen_id?: string;
-    type?: StorageType;
-    description?: string;
-    item_ids?: string[];
-    ui_settings?: StorageUISettings;
-}
+// === OrderStatus ===
+export const OrderStatus = {
+    SKIPPED: "skipped",
+    COMPLETED: "completed",
+    IN_PROGRESS: "in_progress"
+} as const;
+export type OrderStatus = typeof OrderStatus[keyof typeof OrderStatus];
 
-// === Registry Entry ===
-export interface RegistryEntryPayload {
-    id?: string;
-    name?: string;
-    preferred_unit?: string;
-    kitchen_id?: string;
-    default_storage_id?: string;
-    current_quantity?: number;
-    item_ids?: string[];
-    food_group?: string;
-}
+// === EventType ===
+export const EventType = {
+    SUCCESS: "success",
+    INFO: "info",
+    WARNING: "warning",
+    DANGER: "danger"
+} as const;
+export type EventType = typeof EventType[keyof typeof EventType];
 
-// === Item ===
-export interface ItemPayload {
-    id?: string;
-    name?: string;
-    registry_entry_id?: string;
-    storage_id?: string;
-    buyer_member_id?: string;
-    allowed_member_usage?: Record<string, number>;
-    total_quantity?: number;
-    current_quantity?: number;
-    preferred_unit?: string;
-    cost?: number;
-    expiry_date?: string; // ISO string, replace datetime
-}
 
-// === Order ===
-export interface OrderPayload {
-    id?: string;
-    kitchen_id?: string;
-    buyer_member_id?: string;
-    status?: Record<string, OrderStatus>;
-    item_ids?: string[];
-}
-
-// === Log ===
-export interface LogEntryPayload {
-    id?: string;
-    kitchen_id?: string;
-    member_id?: string;
-    action?: string;
-    details?: string;
-}
 
 // === === Responses === ===
+
+// === Base ===
 export interface BaseDocument {
     id: string;
-    created_at: string; // ISO string
-    updated_at: string; // ISO string
+    created_at: string;
+    updated_at: string;
 }
 
-export interface UserProtected extends BaseDocument {
-    id: string;
-    created_at: string; // ISO string instead of datetime
-    updated_at: string; // ISO string instead of datetime
+// === User ===
+export interface User extends BaseDocument {
     username: string;
     email: string;
     member_ids: string[];
 }
 
+
 // === Member ===
 export interface Member extends BaseDocument {
     owner_user_id?: string;
-    kitchen_id: string;
+    stash_id: string;
     nickname: string;
     debts: Record<string, number>;
     is_admin: boolean;
+    is_active: boolean;
 }
 
-// === Kitchen ===
-export interface KitchenSettings {
-    expiry_warning: number;
-}
-
-export interface Kitchen extends BaseDocument {
+// === Stash ===
+export interface Stash extends BaseDocument {
     name: string;
     address?: string;
     member_ids: string[];
     storage_ids: string[];
-    registry_entry_ids: string[];
+    label_ids: string[];
     join_code: string;
-    settings: KitchenSettings;
 }
 
 // === Storage ===
-export interface StorageUISettings {
-    custom_color?: string;
-    size: { width: number; height: number };
-    position: { x: number; y: number };
-}
-
 export interface Storage extends BaseDocument {
     name: string;
-    kitchen_id: string;
+    stash_id: string;
     type: StorageType;
     description?: string;
     item_ids: string[];
-    ui_settings: StorageUISettings;
 }
 
-// === Registry Entry ===
-export interface RegistryEntry extends BaseDocument {
+// === Label ===
+export interface Label extends BaseDocument {
     name: string;
     preferred_unit: string;
-    kitchen_id: string;
+    stash_id: string;
     default_storage_id: string;
     current_quantity: number;
     item_ids: string[];
@@ -160,7 +98,7 @@ export interface RegistryEntry extends BaseDocument {
 // === Item ===
 export interface Item extends BaseDocument {
     name: string;
-    registry_entry_id: string;
+    label_id: string;
     storage_id: string;
     buyer_member_id?: string;
     allowed_member_usage: Record<string, number>;
@@ -168,38 +106,111 @@ export interface Item extends BaseDocument {
     current_quantity: number;
     preferred_unit?: string;
     cost?: number;
-    expiry_date?: string; // ISO string
+    expiry_date?: Date;
 }
 
 // === Order ===
 export interface Order extends BaseDocument {
-    kitchen_id: string;
+    stash_id: string;
     buyer_member_id?: string;
     status: Record<string, OrderStatus>;
     item_ids: string[];
 }
 
-// === Log ===
-export interface LogEntry extends BaseDocument {
-    kitchen_id: string;
+// === Event ===
+export interface Event extends BaseDocument {
+    stash_id: string;
     member_id: string;
-    type: LogType;
+    type: EventType;
     title: string;
     message?: string;
 }
 
-// === Enums (placeholders, adjust to match your backend) ===
-export type StorageType = "fridge" | "freezer" | "pantry" | "garden" | "other";
 
-export type OrderStatus = "skipped" | "completed" | "cancelled";
 
-export type LogType = "success" | "info" | "warning" | "danger";
+// === Payloads ===
 
-// === Placeholder interfaces for nested settings ===
-export interface KitchenSettings {
-    // add fields from backend KitchenSettings
+// === Base ===
+export interface BasePayload {
+    id?: string;
 }
 
-export interface StorageUISettings {
-    // add fields from backend StorageUISettings
+// === User ===
+export interface UserPayload extends BasePayload {
+    email?: string;
+    username?: string;
+    password_current?: string;
+    password_new?: string;
+    member_ids?: string[];
+}
+
+// === Member ===
+export interface MemberPayload extends BasePayload {
+    owner_user_id?: string;
+    stash_id?: string;
+    nickname?: string;
+    debts?: Record<string, number>; // {member_id: amount_owed}
+    is_admin?: boolean;
+    is_active?: boolean;
+}
+
+// === Stash ===
+export interface StashPayload extends BasePayload {
+    name?: string;
+    address?: string;
+    member_ids?: string[];
+    storage_ids?: string[];
+    label_ids?: string[];
+    join_code?: string;
+}
+
+// === Storage ===
+export interface StoragePayload extends BasePayload {
+    name?: string;
+    stash_id?: string;
+    type?: StorageType;
+    description?: string;
+    item_ids?: string[];
+}
+
+// === Label ===
+export interface LabelPayload extends BasePayload {
+    name?: string;
+    preferred_unit?: string;
+    stash_id?: string;
+    default_storage_id?: string;
+    current_quantity?: number;
+    item_ids?: string[];
+    food_group?: string;
+}
+
+// === Item ===
+export interface ItemPayload extends BasePayload {
+    name?: string;
+    label_id?: string;
+    storage_id?: string;
+    buyer_member_id?: string;
+    allowed_member_usage?: Record<string, number>;
+    total_quantity?: number;
+    current_quantity?: number;
+    preferred_unit?: string;
+    cost?: number;
+    expiry_date?: string;
+}
+
+// === Order ===
+export interface OrderPayload extends BasePayload {
+    stash_id?: string;
+    buyer_member_id?: string;
+    status?: Record<string, OrderStatus>;
+    item_ids?: string[];
+}
+
+// === Event ===
+export interface EventPayload extends BasePayload {
+    stash_id?: string;
+    member_id?: string;
+    type?: EventType;
+    title?: string;
+    message?: string;
 }
