@@ -7,7 +7,7 @@ type ButtonFieldProps = {
     disabled?: boolean;
     type?: "button" | "submit";
 
-    color?: "primary" | "secondary" | "success" | "danger" | "warning" | "info" | "light" | "dark" | "transparent";
+    color?: "primary" | "secondary" | "success" | "danger" | "warning" | "info" | "light" | "dark" | "transparent" | string;
     outlineVariant?: boolean;
     rounding?: "0" | "1" | "2" | "3" | "4" | "5" | "pill";
     caps?: "start" | "end" | "both" | "none";

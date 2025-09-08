@@ -5,10 +5,12 @@ import { toast } from "react-toastify/unstyled";
 
 type AuthContextType = {
     user: User | null;
+    authLoading?: boolean;
 };
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
+    authLoading: false,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -40,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user }}>
+        <AuthContext.Provider value={{ user, authLoading: loading }}>
             {children}
         </AuthContext.Provider>
     );

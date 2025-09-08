@@ -1,19 +1,18 @@
 import { Navigate } from "react-router-dom";
-import { useStash } from "@/context/stash/StashContext";
-import React from "react";
-import Loading from "../../components/design/Loading";
+import { useStash } from "./StashContext";
+import Loading from "@/components/design/Loading";
 
-export default function StashRoute({ children }: { children: React.JSX.Element }) {
-    const { currentStashId, stashLoading: loading } = useStash();
+export default function ProtectedRoute({ children }: { children: React.JSX.Element }) {
+    const { activeStash, stashLoading } = useStash();
 
     return (
         <>
-            {loading ? (
+            {stashLoading ? (
                 <Loading />
-            ) : currentStashId ? (
+            ) : activeStash ? (
                 children
             ) : (
-                <Navigate to="/stashes" replace />
+                <Navigate to="/" replace />
             )}
         </>
     );

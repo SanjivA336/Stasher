@@ -7,18 +7,20 @@ import NumberField from "@/components/fields/NumberField";
 
 import Loading from "@/components/design/Loading";
 
-type GenericListProps<T> = {
-    itemName?: string;
+import type { BaseDocument } from "@/apis/_schemas";
+import { toast } from "react-toastify";
+
+type GenericListProps<T extends BaseDocument> = {
     items: T[];
-    refresh?: () => void;
-    openEditor?: (item: T) => void;
+    onRefresh?: () => void;
+
     openCreator?: () => void;
+    openEditor?: (item: T) => void;
     onClick?: (item: T) => void;
-    renderDetails: (item: T) => React.ReactNode;
 
     loading?: boolean;
 
-    search?: boolean;
+    searchBar?: boolean;
     getItemName?: (item: T) => string;
     viewSelector?: boolean;
     defaultView?: "grid" | "list";
@@ -26,20 +28,43 @@ type GenericListProps<T> = {
     defaultLimit?: number;
     pagination?: boolean;
 
-    children?: React.ReactNode;
+    selectedItemIds?: string[];
+    setSelectedItemIds?: (itemIds: string[]) => void;
+    maxSelect?: number;
+    removeFirst?: boolean;
+
+    renderTile: (item: T, onClick: (item: T) => void, onEdit?: (item: T) => void, isSelected?: boolean) => React.ReactNode;
 }
 
-export function GenericList<T>({ itemName="item", items, refresh, openEditor, openCreator, onClick, renderDetails, loading, search = false, getItemName, viewSelector = false, defaultView = "grid", limitSelector = false, defaultLimit = 8, pagination = false, children }: GenericListProps<T>) {
+export function GenericList<T extends BaseDocument>({ items, onRefresh, openEditor, openCreator, onClick, loading, searchBar = false, getItemName, viewSelector = false, defaultView = "grid", limitSelector = false, defaultLimit = 8, pagination = false, selectedItemIds, setSelectedItemIds, maxSelect = 1, removeFirst = true, renderTile }: GenericListProps<T>) {
+    // === States / Variables / Constants ===
+
+    // Search
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [filteredItems, setFilteredItems] = useState<T[]>(items);
+    
+    // View
     const [view, setView] = useState<"grid" | "list">(defaultView);
+    
+    // Limit
     const [limit, setLimit] = useState<number>(defaultLimit);
+    const limitOptions = [4, 8, 12, 16, 20, 24, 32, 50, 100];
 
+    // Pagination
     const [page, setPage] = useState<number>(0);
     const [maxPages, setMaxPages] = useState<number>(Math.ceil(items.length / (limit || items.length)));
 
-    const limitOptions = [4, 8, 12, 16, 20, 24, 32, 50, 100];
+    // === Parameter Validation ===
+    if (searchBar && !getItemName) {
+        throw new Error("getItemName function must be provided when search is enabled.");
+    }
 
+    if ((selectedItemIds != null && setSelectedItemIds == null) || (selectedItemIds == null && setSelectedItemIds != null)) {
+        throw new Error("selectedItemIds and setSelectedItemIds must be provided.");
+    }
+
+    // === Logic ===
+    // Search
     const filterItems = () => {
         if (!searchQuery) {
             setFilteredItems(items);
@@ -57,6 +82,7 @@ export function GenericList<T>({ itemName="item", items, refresh, openEditor, op
         filterItems();
     }, [searchQuery, items]);
 
+    // Pagination
     useEffect(() => {
         setMaxPages(Math.ceil(filteredItems.length / limit));
     }, [filteredItems, limit]);
@@ -73,13 +99,39 @@ export function GenericList<T>({ itemName="item", items, refresh, openEditor, op
         }
     }
 
+    const toggleSelect = (itemId: string) => {
+        if (!(selectedItemIds && setSelectedItemIds)) return;
+        if (selectedItemIds.includes(itemId)) {
+            setSelectedItemIds(selectedItemIds.filter(id => id !== itemId));
+        }
+        else {
+            if (maxSelect != -1 && selectedItemIds.length >= maxSelect) {
+                if (removeFirst) {
+                    setSelectedItemIds([...selectedItemIds.slice(1), itemId]);
+                }
+                else {
+                    toast.error(`You can only select up to ${maxSelect} items.`);
+                }
+            }
+            else {
+                setSelectedItemIds([...selectedItemIds, itemId]);
+            }
+        }
+    }
+
+    // OnClick
+    const handleClick = (item: T) => {
+        toggleSelect(item.id);
+        onClick ? onClick(item) : undefined;    
+    }
+
     return (
         <div className="w-100 h-100 align-items-center justify-content-start d-flex flex-column gap-2">
-            {search && (
+            {searchBar && (
                 <div className="w-100 d-flex flex-row mb-2 align-items-center justify-content-between gap-2">
-                    {refresh && (
+                    {onRefresh && (
                             <ButtonField
-                                onClick={refresh}
+                                onClick={onRefresh}
                                 loading={loading}
                                 color="dark"
                                 rounding="pill"
@@ -92,7 +144,7 @@ export function GenericList<T>({ itemName="item", items, refresh, openEditor, op
                         <ShortTextField
                             value={searchQuery}
                             setValue={setSearchQuery}
-                            placeholder={`Search ${itemName}s by name...`}
+                            placeholder={`Search by name...`}
                             prepend="🔍︎"
                             clearable
                             className="w-100"
@@ -131,16 +183,14 @@ export function GenericList<T>({ itemName="item", items, refresh, openEditor, op
                                 Create
                             </ButtonField>
                     )}
-
-                    {children}
                 </div>
             )}
 
             {loading ? (
-                <Loading message={`Loading ${itemName}s...`} />
+                <Loading message={`Loading items...`} />
             ) : items.length === 0 ? (
                 <div className="text-light text-center">
-                    <p>No {itemName}s found.</p>
+                    <p>No items found.</p>
                     {openCreator && (
                         <ButtonField onClick={openCreator}>
                             Create one now!
@@ -149,7 +199,7 @@ export function GenericList<T>({ itemName="item", items, refresh, openEditor, op
                 </div>
             ) : items.length > 0 && filteredItems.length === 0 ? (
                 <div className="text-light text-center">
-                    <p>No {itemName}s found matching your search.</p>
+                    <p>No items found matching your search.</p>
                     {openCreator && (
                         <ButtonField onClick={openCreator}>
                             Create one now!
@@ -160,43 +210,33 @@ export function GenericList<T>({ itemName="item", items, refresh, openEditor, op
                 <div className="w-100 h-100 d-flex flex-column align-items-center">
                     <div className={`w-100 d-flex flex-${view === "grid" ? "row flex-wrap" : "column"}`}>
                         {filteredItems.slice(page * limit, (page + 1) * limit).map((item, index) => (
-                            <div key={index} className={`${view === "grid" ? "col-lg-3 col-md-4 col-sm-6" : "col-12"} gap-2 p-2`}>
-                                <div 
-                                    className={["w-100 h-100 justify-content-between gap-2 p-3 rounded-3 d-flex overflow-hidden bg-dark",
-                                        `flex-${view === "grid" ? "column" : "row"}`,
-                                    ].join(" ")} 
-                                    onClick={() => onClick ? onClick(item) : undefined}
-                                >
-                                    {renderDetails(item)}
-                                    <span className="w-100 d-flex flex-row gap-2">
-                                        {openEditor && (
-                                            <ButtonField onClick={() => openEditor(item)}
-                                                loading={loading}
-                                                color="primary"
-                                                rounding="2"
-                                                className={`px-4 w-${view === "grid" ? 100 : 25}`} >
-                                                Edit
-                                            </ButtonField>
-                                        )}
-                                    </span>
-                                </div>
+                            <div 
+                                key={index} 
+                                className={`${view === "grid" ? "col-lg-3 col-sm-6 col-12" : "col-12"} gap-2 p-2`}
+                            >
+                                    {renderTile(
+                                        item,
+                                        () => handleClick(item),
+                                        openEditor,
+                                        (selectedItemIds ? selectedItemIds.includes(item.id) : false)
+                                    )}
                             </div>
                         ))}
                     </div>
 
-                    {pagination && (
-                        <div className="col-md-4 col-6 d-flex flex-row justify-content-center align-items-center gap-2 mt-3">
+                    {pagination && maxPages > 1 && (
+                        <div className="container-sm d-flex flex-row justify-content-center align-items-center gap-2 mt-3">
                             <ButtonField
                                 onClick={prevPage}
                                 disabled={page === 0}
                                 color="dark"
                                 rounding="pill"
-                                className="col-md-4 col-3 px-3 py-2"
+                                className="col-md-2 col-sm-3 col-4 px-3 py-2"
                             >
                                 Previous
                             </ButtonField>
 
-                            <span className="col-md-4 col-6 text-light text-center d-flex flex-row align-items-center justify-content-center">
+                            <span className="col-md-2 col-sm-3 col-4 text-light text-center d-flex flex-row align-items-center justify-content-center">
                                 Page {page + 1} of {maxPages}
                             </span>
 
@@ -205,7 +245,7 @@ export function GenericList<T>({ itemName="item", items, refresh, openEditor, op
                                 disabled={page >= maxPages - 1}
                                 color="dark"
                                 rounding="pill"
-                                className="col-md-4 col-3 px-3 py-2"
+                                className="col-md-2 col-sm-3 col-4 px-3 py-2"
                             >
                                 Next
                             </ButtonField>

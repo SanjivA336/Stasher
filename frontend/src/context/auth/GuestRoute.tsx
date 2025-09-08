@@ -4,11 +4,11 @@ import React from "react";
 import Loading from "../../components/design/Loading";
 
 export default function GuestRoute({ children }: { children: React.JSX.Element }) {
-    const { user, authLoading: loading } = useAuth();
+    const { user, authLoading } = useAuth();
 
     return (
         <>
-            {loading ? (
+            {authLoading ? (
                 <Loading />
             ) : !user ? (
                 children

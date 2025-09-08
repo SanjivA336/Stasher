@@ -13,7 +13,7 @@ $danger:    #f55742;     // Danger (errors, destructive actions)
 $warning:   #ffcd29;     // Warning (warnings, alerts)
 $info:      #08B2E3;     // Info (informational)
 $light:     #FAFFFD;     // Light backgrounds and borders
-$dark:      #342E37;     // Dark backgrounds and text
+$dark:      #1e1e1f;     // Dark backgrounds and text
 
 // === Register Theme Colors as Map ===
 // === Configurable mix percentages ===
@@ -117,6 +117,18 @@ body, p, span, li, blockquote, dd, dt, th, td {
     background-color: $dark !important; // Override toast background
     color: $light !important; // Override toast text color
     font-family: $font-family-base;    
+}
+
+.vh-25 {
+    height: 25vh !important;
+}
+
+.vh-50 {
+    height: 50vh !important;
+}
+
+.vh-75 {
+    height: 75vh !important;
 }
 
 // === Import Bootstrap with overrides applied ===

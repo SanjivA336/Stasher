@@ -31,12 +31,12 @@ class User(BaseDocument):
     
     def get_all_members(self) -> List['Member']:
         from backend.database.repos import member_repo
-        members = member_repo.query([("user_id", "==", self.id)])
+        members = member_repo.query([("owner_user_id", "==", self.id)])
         return members
     
     def get_active_members(self) -> List['Member']:
         from backend.database.repos import member_repo
-        members = member_repo.query([("user_id", "==", self.id), ("is_active", "==", True)])
+        members = member_repo.query([("owner_user_id", "==", self.id), ("is_active", "==", True)])
         return members
     
     def get_all_stashes(self) -> List['Stash']:
@@ -328,12 +328,12 @@ class Storage(BaseDocument):
         return _batch
     
 class StorageType(str, Enum):
-    FRIDGE = "fridge"
-    FREEZER = "freezer"
-    PANTRY = "pantry"
-    GARDEN = "garden"
-    OTHER = "other"
-    
+    FRIDGE = "Fridge"
+    FREEZER = "Freezer"
+    PANTRY = "Pantry"
+    GARDEN = "Garden"
+    OTHER = "Other"
+
 # === Label ===
 class Label(BaseDocument):
     name: str

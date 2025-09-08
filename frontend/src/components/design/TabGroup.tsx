@@ -6,6 +6,7 @@ type TabGroupProps = {
 
     disabled?: boolean;
 
+    color?: "primary" | "secondary" | "success" | "danger" | "warning" | "info" | "light" | "dark" | string;
     orientation?: "horizontal" | "vertical";
     rounding?: "0" | "1" | "2" | "3" | "4" | "5" | "pill";
 
@@ -14,7 +15,7 @@ type TabGroupProps = {
     className?: string;
 };
 
-const TabGroup = ({ tabNumber, setTabNumber, disabled = false, orientation="horizontal", rounding="3", tabNames, className }: TabGroupProps) => {
+const TabGroup = ({ tabNumber, setTabNumber, disabled = false, color = "primary", orientation="horizontal", rounding="3", tabNames, className }: TabGroupProps) => {
 
     const changeTab = (index: number) => {
         if (!disabled) {
@@ -36,7 +37,7 @@ const TabGroup = ({ tabNumber, setTabNumber, disabled = false, orientation="hori
                         key={index}
                         onClick={() => changeTab(index)}
                         disabled={disabled}
-                        color={tabNumber === index ? (disabled ? "light" : "primary") : "dark"}
+                        color={tabNumber === index ? (disabled ? "light" : color) : "dark"}
                         rounding={rounding}
                         caps="both"
                         className={`w-100 justify-content-center p-3 ${disabled ? "text-dark" : "text-light"}`}

@@ -1,9 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
+
+import { AuthProvider } from "@/context/auth/AuthContext";
 import GuestRoute from "@/context/auth/GuestRoute";
 import ProtectedRoute from "@/context/auth/ProtectedRoute";
-import { AuthProvider } from "@/context/auth/AuthContext";
-import { StashProvider } from "./context/stash/StashContext";
+
+import { StashProvider } from "@/context/stash/StashContext";
+import StashRoute from "@/context/stash/StashRoute";
+
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -13,10 +17,13 @@ import RequestDenied from "@/pages/error/RequestDenied";
 
 // === Auth Pages ===
 import LoginPage from "@/pages/auth/LoginPage";
-import RegisterPage from "./pages/auth/RegisterPage";
+import RegisterPage from "@/pages/auth/RegisterPage";
 
-// === Main Pages ===
-import StashesPage from "@/pages/StashesPage";
+// === Home Pages ===
+import HomePage from "@/pages/HomePage";
+
+// === Stash Pages ===
+import StashPage from "@/pages/StashPage";
 
 
 export default function App() {
@@ -30,10 +37,10 @@ export default function App() {
 							<Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
 
 							{/* Protected Routes */}
-							<Route path="/stashes" element={<ProtectedRoute><StashesPage /></ProtectedRoute>} />
+							<Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
 
 							{/* Protected Stash Routes */}
-							
+							<Route path="/stash" element={<ProtectedRoute><StashRoute><StashPage /></StashRoute></ProtectedRoute>} />
 
 							{/* Error Pages */}
 							<Route path="/403" element={<RequestDenied />} />

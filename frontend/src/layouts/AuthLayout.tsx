@@ -8,8 +8,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
     return (
         <div className="vw-100 vh-100 d-flex flex-column align-items-center justify-content-center bg-darkest text-light">
             <div className="d-flex text-center m-1">
-                <h1 className="text-light m-0">Welcome to&nbsp;</h1>
-                <h1 className="text-primary m-0">Stasher.</h1>
+                <h1 className="text-light m-0">Welcome to <span className="text-primary" style={{fontFamily: "Cal Sans"}}>Stasher.</span></h1>
             </div>
             <div className="d-flex text-center">
                 <h5 className="text-light m-0">Never lose track of what's in your stash.</h5>

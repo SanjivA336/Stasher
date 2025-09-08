@@ -15,12 +15,12 @@ export default function ErrorLayout({ children }: ErrorLayoutProps) {
             <div className="d-flex flex-column text-center m-1">
                 {children}
                 <ButtonField
-                    onClick={() => navigate("/stashes")}
+                    onClick={() => navigate("/")}
                     color="primary"
                     rounding="3"
                     className="p-2"
                 >
-                    <p className="m-0">Go to Stashes</p>
+                    <p className="m-0">Go to Home</p>
                 </ButtonField>
             </div>
         </div>

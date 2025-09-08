@@ -5,7 +5,6 @@ import { StashAPI } from "@/apis/repo_api";
 
 import ButtonField from "@/components/fields/ButtonField";
 import ShortTextField from "@/components/fields/ShortTextField";
-import DropdownField from "@/components/fields/DropdownField";
 import Modal from "@/components/design/Modal";
 
 import Loading from "@/components/design/Loading";
@@ -15,9 +14,10 @@ import { useStash } from "@/context/stash/StashContext";
 type StashCreatorProps = {
     showCreator: boolean;
     setShowCreator: (show: boolean) => void;
+    refresh?: () => void;
 }
 
-export function StashCreator({ showCreator, setShowCreator }: StashCreatorProps) {
+export function StashCreator({ showCreator, setShowCreator, refresh }: StashCreatorProps) {
     const { setCurrentStashId } = useStash();
 
     const [stash, setStash] = useState<Stash | null>(null);
@@ -57,6 +57,9 @@ export function StashCreator({ showCreator, setShowCreator }: StashCreatorProps)
             setCurrentStashId(response.id);
             setShowCreator(false);
             toast.success("Stash created successfully!");
+            if (refresh) {
+                refresh();
+            }
         }
         catch (error) {
             toast.error("Failed to create stash: " + error);
@@ -118,16 +121,16 @@ export function StashCreator({ showCreator, setShowCreator }: StashCreatorProps)
                     </form>
                 </div>
             ) : (
-                <div>
-                    <h3>Oh No!</h3>
-                    <h6>Something went wrong. Please try again.</h6>
+                <div className="d-flex flex-column align-items-center">
+                    <h3 className="m-0">Oh No!</h3>
+                    <h6 className="my-2">Something went wrong. Please try again.</h6>
                     <ButtonField
                         onClick={fetchStashTemplate}
-                        className="w-100"
+                        className="w-100 mt-3 p-2"
                     >
-                        <h5 className="m-0">Retry</h5>
+                        <h5 className="m-0 text-light">Retry</h5>
                     </ButtonField>
-                    <p className="text-muted">If the issue persists, please try again at a later time.</p>
+                    <p className="text-muted m-1"><small>If the issue persists, please try again at a later time.</small></p>
                 </div>
             )}
         </Modal>

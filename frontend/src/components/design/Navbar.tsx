@@ -4,10 +4,13 @@ import React from "react";
 
 import Logo from "@/assets/brand/LogoAccent.png";
 import ButtonField from "@/components/fields/ButtonField";
-export const NAVBAR_HEIGHT = "70px";
+import { useStash } from "@/context/stash/StashContext";
+export const NAVBAR_HEIGHT = "60px";
 
 const Navbar = () => {
     const navigate = useNavigate();
+
+    const { clearStash } = useStash();
 
     const [loading, setLoading] = React.useState(false);
 
@@ -29,7 +32,7 @@ const Navbar = () => {
 
     return (
         <>
-            <div className="w-100 px-4 bg-dark d-flex flex-row justify-content-between fixed-top" style={{ height: NAVBAR_HEIGHT }}>
+            <div className="w-100 px-2 py-2 bg-dark d-flex flex-row justify-content-between fixed-top" style={{ height: NAVBAR_HEIGHT }}>
                 {/* Navbar Start */}
                 <div className="d-flex align-items-start h-100">
                     <img src={Logo} className="h-50 my-auto me-2" onClick={() => navigate("/")}/>
@@ -39,13 +42,13 @@ const Navbar = () => {
                 {/* Navbar End */}
                 <div className="d-flex gap-2 align-items-end">
                     <ButtonField
-                        onClick={() => navigate("/kitchens")}
+                        onClick={() => { clearStash(); navigate("/"); }}
                         rounding="3"
                         color="dark"
-                        loading={loading}
+                        disabled={loading}
                         className="w-100 px-3 p-2 text-nowrap"
                     >
-                        My Kitchens
+                        My Stashes
                     </ButtonField>
                     <ButtonField
                         onClick={() => handleLogout()}
@@ -56,7 +59,6 @@ const Navbar = () => {
                         className="w-100 px-3 p-2 text-nowrap"
                     >
                         Logout
-                        {loading && <span className="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></span>}
                     </ButtonField>
                 </div>
             </div>

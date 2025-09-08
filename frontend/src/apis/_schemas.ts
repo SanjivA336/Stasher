@@ -11,11 +11,11 @@ export const UNNAMED = "Unnamed";
 
 // === StorageType ===
 export const StorageType = {
-    FRIDGE: "fridge",
-    FREEZER: "freezer",
-    PANTRY: "pantry",
-    GARDEN: "garden",
-    OTHER: "other"
+    FRIDGE: "Fridge",
+    FREEZER: "Freezer",
+    PANTRY: "Pantry",
+    GARDEN: "Garden",
+    OTHER: "Other"
 } as const;
 export type StorageType = typeof StorageType[keyof typeof StorageType];
 

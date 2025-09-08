@@ -40,7 +40,7 @@ async def get_current_active_members(current_user: User = Depends(get_current_us
 async def get_current_active_stashes(current_user: User = Depends(get_current_user)):
     members = current_user.get_active_members()
     stash_ids = [member.stash_id for member in members]
-    return stash_repo.query([("id", "in", stash_ids)])
+    return stash_repo.query([("id", "in", stash_ids)]) or [] if stash_ids else []
 
 @router.get("/current/can_access/{stash_id}", response_model=bool)
 async def check_access(stash_id: str, current_user: User = Depends(get_current_user)):
@@ -49,7 +49,7 @@ async def check_access(stash_id: str, current_user: User = Depends(get_current_u
 # endregion
 
 # region === User API === ===
-@router.get("/user/template", response_model=UserProtected)
+@router.get("/user-template", response_model=UserProtected)
 def user_get_template():
     raise HTTPException(status_code=200, detail="No template available for User.")
 
@@ -149,7 +149,7 @@ def user_get_stashes(user_id: str, filter: str, current_user: User = Depends(get
 # endregion
 
 # region === Member API === ===
-@router.get("/member/template", response_model=Member)
+@router.get("/member-template", response_model=Member)
 def member_get_template(current_user: User = Depends(get_current_user)):
     member = Member(
         owner_user_id=current_user.id,
@@ -312,7 +312,7 @@ def member_get_events(member_id: str, current_user: User = Depends(get_current_u
 # endregion
 
 # region === Stash API === ===
-@router.get("/stash/template", response_model=Stash)
+@router.get("/stash-template", response_model=Stash)
 def stash_get_template(current_user: User = Depends(get_current_user)):
     stash = Stash(
         name="My Stash",
@@ -355,7 +355,7 @@ def stash_create(payload: StashPayload, current_user: User = Depends(get_current
         name="My Storage",
         stash_id=stash.id,
         type=StorageType.PANTRY,
-        description="My first storage. I can edit its details later in its settings.",
+        description="My first storage.",
         item_ids=[]
     )
     
@@ -375,6 +375,7 @@ def stash_create(payload: StashPayload, current_user: User = Depends(get_current
     batch = firestore_wrapper.create_batch()
     
     stash_repo.batch_add(batch, stash)
+    storage_repo.batch_add(batch, storage)
     member_repo.batch_add(batch, member)
     event_repo.batch_add(batch, event)
     user_repo.batch_update(batch, current_user)
@@ -527,7 +528,7 @@ def stash_get_items(stash_id: str, current_user: User = Depends(get_current_user
 # endregion
 
 # region === Storage API === ===
-@router.get("/storage/template", response_model=Storage)
+@router.get("/storage-template", response_model=Storage)
 def storage_get_template(current_user: User = Depends(get_current_user)):
     storage = Storage(
         name="My Storage",
@@ -710,7 +711,7 @@ def storage_get_default_labels(storage_id: str, current_user: User = Depends(get
 # endregion
 
 # region === Label API === ===
-@router.get("/label/template", response_model=Label)
+@router.get("/label-template", response_model=Label)
 def label_get_template(current_user: User = Depends(get_current_user)):
     label = Label(
         name="My Label",
@@ -907,7 +908,7 @@ def label_get_items(label_id: str, current_user: User = Depends(get_current_user
 # endregion
 
 # region === Item API === ===
-@router.get("/item/template", response_model=Item)
+@router.get("/item-template", response_model=Item)
 def item_get_template(current_user: User = Depends(get_current_user)):
     item = Item(
         name="My Item",
@@ -1201,7 +1202,7 @@ def item_get_order(item_id: str, current_user: User = Depends(get_current_user))
 #endregion
 
 # region === Order API === ===
-@router.get("/order/template", response_model=Order)
+@router.get("/order-template", response_model=Order)
 def order_get_template(current_user: User = Depends(get_current_user)):
     order = Order(
         stash_id=""
@@ -1392,7 +1393,7 @@ def order_get_items(order_id: str, current_user: User = Depends(get_current_user
 #endregion
 
 # region === Event API === ===
-@router.get("/event/template", response_model=Event)
+@router.get("/event-template", response_model=Event)
 def event_get_template(current_user: User = Depends(get_current_user)):
     return Event(
         stash_id="",

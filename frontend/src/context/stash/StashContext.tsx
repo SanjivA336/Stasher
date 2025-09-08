@@ -1,75 +1,77 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { useAuth } from "@/context/auth/AuthContext";
-import type { User, Member, Stash } from "@/apis/_schemas";
-import { CurrentAPI, StashAPI } from "@/apis/repo_api";
+import type { Stash } from "@/apis/_schemas";
+import { StashAPI } from "@/apis/repo_api";
+import { createContext, useContext, useState, useEffect } from "react";
 
-const CURRENT_STASH_KEY = "current_stash_id";
+import { useAuth } from "@/context/auth/AuthContext";
 
 type StashContextType = {
-    currentStash: Stash | null;
-    setCurrentStashId: (stashId: string) => void;
+    activeStash: Stash | null;
+    setActiveStashId: (stashId: string | null) => void;
+
+    clearStash: () => void;
+
+    stashLoading: boolean;
 };
 
-const StashContext = createContext<StashContextType>({
-    currentStash: null,
-    setCurrentStashId: () => {},
-});
+const StashContext = createContext<StashContextType | undefined>(undefined);
 
-export function StashProvider({ children }: { children: React.ReactNode }) {
-    const { user } = useAuth();
-    const [currentStash, setCurrentStash] = useState<Stash | null>(null);
-    
+const STASH_ID_LOCATION = "activeStashId";
+
+export const StashProvider = ({ children }: { children: React.ReactNode }) => {
+    const { user, authLoading } = useAuth();
+
+    const [stash, setStash] = useState<Stash | null>(null);
+
     const [loading, setLoading] = useState(true);
 
+    // Load from localStorage on startup
     useEffect(() => {
-        async function initializeStash() {
-            if (!user) {
-                setCurrentStash(null);
-                setLoading(false);
-                return;
-            }
+        if (authLoading) return;
 
-            // 1. Check local storage
-            let stashId = localStorage.getItem(CURRENT_STASH_KEY);
-            if (stashId) {
-                try {
-                    const stash: Stash = await StashAPI.get(stashId);
-                    setCurrentStash(stash);
-                    setLoading(false);
-                    return;
-                } catch (error) {
-                    console.warn("Failed to fetch stash from local storage, will try to find another. Error: ", error);
-                }
-            }
-
-            // 2. If none, default to first active member/stash
-            const stashes: Stash[] = await CurrentAPI.get_active_stashes();
-            if (stashes.length > 0) {
-                setCurrentStash(stashes[0]);
-                localStorage.setItem(CURRENT_STASH_KEY, stashes[0].id);
-            }
-
-            // 3. If still no stash (user has no members), set to null
-            setCurrentStash(null);
-            setLoading(false);
+        if (!user) {
+            clearStash();
+            return;
         }
 
-        initializeStash();
-    }, [user]);
+        const savedId = localStorage.getItem(STASH_ID_LOCATION);
+        setActiveStash(savedId);
 
-    async function setCurrentStashId(stashId: string) {
-        const stash: Stash = await StashAPI.get(stashId);
-        localStorage.setItem(CURRENT_STASH_KEY, stashId);
-        setCurrentStash(stash);
-    }
+    }, [authLoading, user]);
+
+    const setActiveStash = async (id: string | null) => {
+        if (id) {
+            setLoading(true);
+            try {
+                const response: Stash = await StashAPI.get(id);
+                setStash(response);
+                localStorage.setItem(STASH_ID_LOCATION, response.id);
+            } catch (error) {
+                console.error("Failed to fetch stash:", error);
+                clearStash();
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            clearStash();
+        }
+    };
+
+    // Clear storage + redirect to stashes menu
+    const clearStash = () => {
+        localStorage.removeItem(STASH_ID_LOCATION);
+        setStash(null);
+        setLoading(false);
+    };
 
     return (
-        <StashContext.Provider value={{ currentStash, setCurrentStashId }}>
+        <StashContext.Provider value={{ activeStash: stash, setActiveStashId: setActiveStash, clearStash, stashLoading: loading }}>
             {children}
         </StashContext.Provider>
     );
-}
+};
 
-export function useStash() {
-    return useContext(StashContext);
-}
+export const useStash = () => {
+    const context = useContext(StashContext);
+    if (!context) throw new Error("useStash must be used inside StashProvider");
+    return context;
+};
