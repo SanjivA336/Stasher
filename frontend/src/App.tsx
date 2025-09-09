@@ -24,7 +24,7 @@ import HomePage from "@/pages/HomePage";
 
 // === Stash Pages ===
 import StashPage from "@/pages/StashPage";
-
+import StoragePage from "@/pages/StoragePage";
 
 export default function App() {
 	return (
@@ -41,6 +41,7 @@ export default function App() {
 
 							{/* Protected Stash Routes */}
 							<Route path="/stash" element={<ProtectedRoute><StashRoute><StashPage /></StashRoute></ProtectedRoute>} />
+							<Route path="/storage/:storageId" element={<ProtectedRoute><StashRoute><StoragePage /></StashRoute></ProtectedRoute>} />
 
 							{/* Error Pages */}
 							<Route path="/403" element={<RequestDenied />} />

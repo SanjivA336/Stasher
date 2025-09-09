@@ -6,43 +6,42 @@ import { toast } from "react-toastify";
 import { useStash } from "@/context/stash/StashContext";
 
 import type { Storage } from "@/apis/_schemas";
-import { StashAPI } from "@/apis/repo_api";
 
 import HomeLayout from "@/layouts/HomeLayout";
 import Loading from "@/components/design/Loading";
 import ButtonField from "@/components/fields/ButtonField";
 import GenericList from "@/features/list/GenericList";
 import RenderStorageTile from "@/features/list/RenderStorageTile";
-import StorageCreator from "@/features/editors/storage/StorageCreator";
-import StorageEditor from "@/features/editors/storage/StorageEditor";
+import StorageCreator from "@/features/editors/StorageCreator";
+import StashEditor from "@/features/editors/StashEditor";
 
 export default function StashPage() {
-    const { activeStash } = useStash();
+    const { loader } = useStash();
 
     const [storages, setStorages] = useState<Storage[]>([]);
     const [selectedStorageIds, setSelectedStorageIds] = useState<string[]>([]);
 
     const [showStorageCreator, setShowStorageCreator] = useState(false);
-
-    const [showStorageEditor, setShowStorageEditor] = useState(false);
-    const [storageToEditId, setStorageToEditId] = useState<string>("");
+    const [showStashEditor, setShowStashEditor] = useState(false);
 
     const [loading, setLoading] = useState(true);
 
-    if (!activeStash) {
-        throw new Error("Current Stash not set. Possible failure in StashContext.");
+    const navigate = useNavigate();
+
+    if (!loader.is_loaded()) {
+        throw new Error("Current stash not set. Possible failure in StashContext.");
     }
 
     async function fetchStorages() {
         setLoading(true);
-        if (!activeStash) {
+        if (!loader.is_loaded()) {
             setStorages([]);
             setLoading(false);
             return;
         }
 
         try {
-            const response: Storage[] = await StashAPI.get_storages(activeStash.id);
+            const response: Storage[] = await loader.fetch_storages();
             response.sort((a, b) => a.updated_at > b.updated_at ? -1 : 1);
             setStorages(response);
         } catch (error) {
@@ -55,14 +54,14 @@ export default function StashPage() {
 
     useEffect(() => {
         fetchStorages();
-    }, [activeStash]);
+    }, [loader]);
 
     return (
         <HomeLayout>
             <div className="d-flex flex-column w-100 h-auto">
                 <div className="w-100 vh-25 align-items-center justify-content-center align-content-center text-center">
-                    <div className="w-100 d-flex flex-row justify-content-center text-center m-1">
-                        <h1 className="text-primary m-0">{activeStash.name}</h1>
+                    <div className="w-100 d-flex flex-row justify-content-center text-center m-1" onClick={() => setShowStashEditor(true)} style={{ cursor: "pointer" }}>
+                        <h1 className="text-primary m-0">{loader.stash.name}</h1>
                     </div>
                     <div className="w-100 d-flex flex-row justify-content-center text-center m-1">
                         <h5 className="text-light m-0">Here you can manage your storage items.</h5>
@@ -90,8 +89,8 @@ export default function StashPage() {
                         <GenericList
                             items={storages}
                             onRefresh={fetchStorages}
+                            onClick={(storage) => navigate("/storage/" + storage.id)}
                             openCreator={() => setShowStorageCreator(true)}
-                            openEditor={(storage) => {setShowStorageEditor(true); setStorageToEditId(storage.id);}}
                             searchBar
                             getItemName={(storage) => storage.name}
                             defaultLimit={8}
@@ -104,7 +103,7 @@ export default function StashPage() {
                 </div>
 
                 <StorageCreator showCreator={showStorageCreator} setShowCreator={setShowStorageCreator} refresh={fetchStorages} />
-                <StorageEditor showEditor={showStorageEditor} setShowEditor={setShowStorageEditor} refresh={fetchStorages} storageId={storageToEditId} />
+                <StashEditor showEditor={showStashEditor} setShowEditor={setShowStashEditor} />
 
             </div>
         </HomeLayout>

@@ -10,7 +10,7 @@ export const NAVBAR_HEIGHT = "60px";
 const Navbar = () => {
     const navigate = useNavigate();
 
-    const { clearStash } = useStash();
+    const { setStashId } = useStash();
 
     const [loading, setLoading] = React.useState(false);
 
@@ -42,7 +42,7 @@ const Navbar = () => {
                 {/* Navbar End */}
                 <div className="d-flex gap-2 align-items-end">
                     <ButtonField
-                        onClick={() => { clearStash(); navigate("/"); }}
+                        onClick={() => { setStashId(null); navigate("/"); }}
                         rounding="3"
                         color="dark"
                         disabled={loading}

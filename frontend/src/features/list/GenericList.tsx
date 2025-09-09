@@ -135,7 +135,7 @@ export function GenericList<T extends BaseDocument>({ items, onRefresh, openEdit
                                 loading={loading}
                                 color="dark"
                                 rounding="pill"
-                                className="px-3 py-2"
+                                className="px-3 py-2 border-darkish border-2"
                             >
                                 Refresh
                             </ButtonField>
@@ -212,7 +212,7 @@ export function GenericList<T extends BaseDocument>({ items, onRefresh, openEdit
                         {filteredItems.slice(page * limit, (page + 1) * limit).map((item, index) => (
                             <div 
                                 key={index} 
-                                className={`${view === "grid" ? "col-lg-3 col-sm-6 col-12" : "col-12"} gap-2 p-2`}
+                                className={`${view === "grid" ? "col-lg-3 col-sm-6 col-12" : "col-12"} gap-2 p-2 `}
                             >
                                     {renderTile(
                                         item,

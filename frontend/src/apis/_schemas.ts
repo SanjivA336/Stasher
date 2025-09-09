@@ -5,8 +5,6 @@ export const EMPTY_STRING = "";
 export const UNKNOWN = "Unknown";
 export const UNNAMED = "Unnamed";
 
-
-
 // === === Enums === ===
 
 // === StorageType ===
@@ -195,7 +193,7 @@ export interface ItemPayload extends BasePayload {
     current_quantity?: number;
     preferred_unit?: string;
     cost?: number;
-    expiry_date?: string;
+    expiry_date?: Date;
 }
 
 // === Order ===

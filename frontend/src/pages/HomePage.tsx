@@ -12,13 +12,13 @@ import { CurrentAPI } from "@/apis/repo_api";
 import HomeLayout from "@/layouts/HomeLayout";
 import Loading from "@/components/design/Loading";
 import ButtonField from "@/components/fields/ButtonField";
-import StashCreator from "@/features/editors/stash/StashCreator";
+import StashCreator from "@/features/editors/StashCreator";
 import GenericList from "@/features/list/GenericList";
 import RenderStashTile from "@/features/list/RenderStashTile";
 
 export default function HomePage() {
     const { user } = useAuth();
-    const { activeStash, setActiveStashId, stashLoading } = useStash();
+    const { loader, setStashId, stashLoading } = useStash();
 
     const [stashes, setStashes] = useState<Stash[]>([]);
 
@@ -30,8 +30,8 @@ export default function HomePage() {
     useEffect(() => {
         if (stashLoading) return;
 
-        if (activeStash) {
-            toast.info("Redirecting to your active stash: " + activeStash.name);
+        if (loader.is_loaded()) {
+            toast.info("Redirecting to your active stash: " + loader.stash.id);
             navigate("/stash", { replace: true });
         }
     }, [stashLoading]);
@@ -103,7 +103,7 @@ export default function HomePage() {
                             <GenericList<Stash>
                                 items={stashes}
                                 onRefresh={fetchStashes}
-                                onClick={(stash) => {setActiveStashId(stash.id); navigate("/stash");}}
+                                onClick={(stash) => {setStashId(stash.id); navigate("/stash");}}
                                 openCreator={() => setShowStashCreator(true)}
                                 searchBar
                                 getItemName={(stash) => stash.name}

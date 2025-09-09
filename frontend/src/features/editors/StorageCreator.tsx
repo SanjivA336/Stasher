@@ -1,7 +1,8 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-import type { Stash, Label, Storage, Member } from "@/apis/_schemas";
-import { StashAPI } from "@/apis/repo_api";
+import type { Storage } from "@/apis/_schemas";
+import { StorageType } from "@/apis/_schemas";
+import { StorageAPI } from "@/apis/repo_api";
 
 import ButtonField from "@/components/fields/ButtonField";
 import ShortTextField from "@/components/fields/ShortTextField";
@@ -10,53 +11,66 @@ import Modal from "@/components/design/Modal";
 import Loading from "@/components/design/Loading";
 import { toast } from "react-toastify";
 import { useStash } from "@/context/stash/StashContext";
+import DropdownField from "@/components/fields/DropdownField";
+import LongTextField from "@/components/fields/LongTextField";
+import ColorDecoder from "@/components/design/ColorDecoder";
+import TabGroup from "@/components/design/TabGroup";
 
-type StashCreatorProps = {
+type StorageCreatorProps = {
     showCreator: boolean;
     setShowCreator: (show: boolean) => void;
     refresh?: () => void;
 }
 
-export function StashCreator({ showCreator, setShowCreator, refresh }: StashCreatorProps) {
-    const { setCurrentStashId } = useStash();
+export function StorageCreator({ showCreator, setShowCreator, refresh }: StorageCreatorProps) {
+    const { loader, stashLoading } = useStash();
 
-    const [stash, setStash] = useState<Stash | null>(null);
+    const [storage, setStorage] = useState<Storage | null>(null);
 
     const [loading, setLoading] = useState<boolean>(true);
 
 
-    const fetchStashTemplate = async () => {
+    const fetchStorageTemplate = async () => {
         setLoading(true);
         try{
-            const response: Stash = await StashAPI.get_template();
-            setStash(response);
+            const response: Storage = await StorageAPI.get_template();
+            setStorage(response);
         } catch (error) {
-            toast.error("Failed to fetch stash template: " + error);
-            setStash(null);
+            toast.error("Failed to fetch storage template: " + error);
+            setStorage(null);
         } finally {
             setLoading(false);
         }
     };
 
-    const saveStash = async () => {
-        if (!stash) return;
+    const saveStorage = async () => {
+        if (!storage) return;
+        if (!loader.is_loaded()) {
+            if (stashLoading) {
+                toast.info("Please wait for the current stash to load.");
+            }
+            else {
+                toast.error("No stash selected. Please select a stash first.");
+            }
+            return;
+        }
 
         setLoading(true);
 
-        if (!stash.name || stash.name.trim() === "") {
-            toast.error("Stash name cannot be empty.");
+        if (!storage.name || storage.name.trim() === "") {
+            toast.error("Storage name cannot be empty.");
             setLoading(false);
             return;
         }
 
         try {
-            const response: Stash = await StashAPI.create({
-                name: stash.name,
-                address: stash.address,
+            const response: Storage = await loader.create_storage({
+                name: storage.name,
+                type: storage.type,
+                description: storage.description,
             });
-            setCurrentStashId(response.id);
             setShowCreator(false);
-            toast.success("Stash created successfully!");
+            toast.success("Storage created successfully!");
             if (refresh) {
                 refresh();
             }
@@ -70,36 +84,43 @@ export function StashCreator({ showCreator, setShowCreator, refresh }: StashCrea
 
     useEffect(() => {
         if (showCreator) {
-            fetchStashTemplate();
+            fetchStorageTemplate();
         } else {
-            setStash(null);
+            setStorage(null);
         }
     }, [showCreator]);
 
     return (
         <Modal
-            title="Create a New Stash"
+            title="Create a New Storage"
             showModal={showCreator}
             setShowModal={(show) => setShowCreator(show)}
             width={6}
         >
             {loading ? (
                 <Loading />
-            ) : stash ? (
+            ) : storage ? (
                 <div>
                     <form className="d-flex flex-column gap-3">
                         <ShortTextField
-                            value={stash?.name || ""}
-                            setValue={(name) => setStash({ ...stash, name })}
+                            value={storage?.name || ""}
+                            setValue={(name) => setStorage({ ...storage, name })}
                             label="Stash Name"
                             placeholder="Enter a name..."
                         />
 
-                        <ShortTextField
-                            value={stash?.address || ""}
-                            setValue={(address) => setStash({ ...stash, address })}
-                            label="Address (optional)"
-                            placeholder="Enter an address..."
+                        <TabGroup
+                            tabNames={Object.values(StorageType)}
+                            tabNumber={Object.values(StorageType).indexOf(storage?.type || StorageType.OTHER)}
+                            setTabNumber={(index) => setStorage({ ...storage, type: Object.values(StorageType)[index] })}
+                            color={ColorDecoder(storage?.type || "")}
+                        />
+
+                        <LongTextField
+                            value={storage?.description || ""}
+                            setValue={(description) => setStorage({ ...storage, description })}
+                            label="Description (Optional)"
+                            placeholder="Enter a description..."
                         />
 
                         <div className="d-flex flex-row gap-3 my-2">
@@ -112,7 +133,7 @@ export function StashCreator({ showCreator, setShowCreator, refresh }: StashCrea
                             </ButtonField>
 
                             <ButtonField
-                                onClick={() => saveStash()}
+                                onClick={() => saveStorage()}
                                 className="w-100"
                             >
                                 <p className="m-0">Create</p>
@@ -125,7 +146,7 @@ export function StashCreator({ showCreator, setShowCreator, refresh }: StashCrea
                     <h3 className="m-0">Oh No!</h3>
                     <h6 className="my-2">Something went wrong. Please try again.</h6>
                     <ButtonField
-                        onClick={fetchStashTemplate}
+                        onClick={fetchStorageTemplate}
                         className="w-100 mt-3 p-2"
                     >
                         <h5 className="m-0 text-light">Retry</h5>
@@ -137,4 +158,4 @@ export function StashCreator({ showCreator, setShowCreator, refresh }: StashCrea
     );
 };
 
-export default StashCreator;
+export default StorageCreator;

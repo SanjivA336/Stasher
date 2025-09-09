@@ -1,14 +1,13 @@
 import type { Stash } from "@/apis/_schemas";
 import { StashAPI } from "@/apis/repo_api";
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, act, useRef } from "react";
 
 import { useAuth } from "@/context/auth/AuthContext";
+import { StashLoader } from "@/apis/loader_api";
 
 type StashContextType = {
-    activeStash: Stash | null;
-    setActiveStashId: (stashId: string | null) => void;
-
-    clearStash: () => void;
+    loader: StashLoader;
+    setStashId: (stashId: string | null) => Promise<void>;
 
     stashLoading: boolean;
 };
@@ -19,9 +18,7 @@ const STASH_ID_LOCATION = "activeStashId";
 
 export const StashProvider = ({ children }: { children: React.ReactNode }) => {
     const { user, authLoading } = useAuth();
-
-    const [stash, setStash] = useState<Stash | null>(null);
-
+    const loaderRef = useRef<StashLoader>(new StashLoader());
     const [loading, setLoading] = useState(true);
 
     // Load from localStorage on startup
@@ -34,19 +31,18 @@ export const StashProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         const savedId = localStorage.getItem(STASH_ID_LOCATION);
-        setActiveStash(savedId);
-
+        setStashId(savedId);
     }, [authLoading, user]);
 
-    const setActiveStash = async (id: string | null) => {
+    const setStashId = async (id: string | null) => {
+        setLoading(true);
         if (id) {
-            setLoading(true);
             try {
-                const response: Stash = await StashAPI.get(id);
-                setStash(response);
-                localStorage.setItem(STASH_ID_LOCATION, response.id);
+                loaderRef.current.clear();
+                await loaderRef.current.init(id, user!);
+                localStorage.setItem(STASH_ID_LOCATION, id);
             } catch (error) {
-                console.error("Failed to fetch stash:", error);
+                console.error("Failed to initialize stash loader:", error);
                 clearStash();
             } finally {
                 setLoading(false);
@@ -54,17 +50,22 @@ export const StashProvider = ({ children }: { children: React.ReactNode }) => {
         } else {
             clearStash();
         }
+        setLoading(false);
     };
 
     // Clear storage + redirect to stashes menu
     const clearStash = () => {
         localStorage.removeItem(STASH_ID_LOCATION);
-        setStash(null);
+        loaderRef.current.clear();
         setLoading(false);
     };
 
     return (
-        <StashContext.Provider value={{ activeStash: stash, setActiveStashId: setActiveStash, clearStash, stashLoading: loading }}>
+        <StashContext.Provider value={{
+            loader: loaderRef.current,
+            setStashId,
+            stashLoading: loading
+        }}>
             {children}
         </StashContext.Provider>
     );

@@ -18,6 +18,11 @@ export class CurrentAPI {
         return await GET_ENDPOINT<Stash[]>("/current/stashes/active");
     }
 
+    static async get_current_member(stash_id: string): Promise<Member | null> {
+        const members = await this.get_active_members();
+        return members.find(member => member.stash_id === stash_id) || null;
+    }
+
     static async check_access(stash_id: string): Promise<boolean> {
         return await GET_ENDPOINT<boolean>(`/current/can_access/${stash_id}`);
     }

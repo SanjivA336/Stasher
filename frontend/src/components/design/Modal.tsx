@@ -1,4 +1,5 @@
 import React from "react";
+import ButtonField from "../fields/ButtonField";
 
 type ModalProps = {
     title: string;
@@ -6,11 +7,13 @@ type ModalProps = {
     setShowModal: (show: boolean) => void;
     children: React.ReactNode;
     onClose?: () => void;
+    editMode?: boolean | undefined;
+    setEditMode?: (editMode: boolean) => void;
 
     width?: number
 };
 
-const Modal = ({ title, showModal, setShowModal, children, onClose, width=9 }: ModalProps) => {
+const Modal = ({ title, showModal, setShowModal, children, onClose, width=9, editMode=undefined, setEditMode }: ModalProps) => {
     if (!showModal) return null;
 
     const handleClose = () => {
@@ -26,9 +29,25 @@ const Modal = ({ title, showModal, setShowModal, children, onClose, width=9 }: M
                         {title}
                         
                     </h3>
-                    <button type="button" className="btn btn-outline-danger" onClick={handleClose}>
-                        ✖
-                    </button>
+                    <div className="d-flex flex-row gap-2">
+                        {setEditMode && editMode !== undefined && (
+                            <ButtonField 
+                                onClick={() => setEditMode(!editMode)}
+                                color="primary"
+                                rounding="3"
+                                outlineVariant={!editMode}
+                                >
+                                ✎
+                            </ButtonField>
+                        )}
+                        <ButtonField
+                            onClick={handleClose}
+                            color="danger"
+                            rounding="3"
+                            outlineVariant>
+                            ✖
+                        </ButtonField>
+                    </div>
                 </div>
                 <hr />
                 <div className="d-flex flex-column gap-3 p-3 overflow-y-auto">
