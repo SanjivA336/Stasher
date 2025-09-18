@@ -5,14 +5,17 @@ import React from "react";
 import Logo from "@/assets/brand/LogoAccent.png";
 import ButtonField from "@/components/fields/ButtonField";
 import { useStash } from "@/context/stash/StashContext";
+import { StashEditor } from "@/features/editors/StashEditor";
 export const NAVBAR_HEIGHT = "60px";
 
 const Navbar = () => {
     const navigate = useNavigate();
 
-    const { setStashId } = useStash();
+    const { loader, stashLoading, setStashId } = useStash();
 
     const [loading, setLoading] = React.useState(false);
+
+    const [showStashEditor, setShowStashEditor] = React.useState(false);
 
     const handleLogout = async () => {
         if (loading) return;
@@ -41,6 +44,18 @@ const Navbar = () => {
 
                 {/* Navbar End */}
                 <div className="d-flex gap-2 align-items-end">
+
+                    {!stashLoading && loader.is_loaded() && 
+                        <ButtonField
+                            onClick={() => { setShowStashEditor(true); }}
+                            rounding="3"
+                            color="dark"
+                            disabled={loading}
+                            className="w-100 px-3 p-2 text-nowrap"
+                        >
+                            Edit Stash
+                        </ButtonField>
+                    }
                     <ButtonField
                         onClick={() => { setStashId(null); navigate("/"); }}
                         rounding="3"
@@ -63,6 +78,8 @@ const Navbar = () => {
                 </div>
             </div>
             <div className="mb-2" style={{ height: NAVBAR_HEIGHT }}></div> {/* Spacer for fixed navbar */}
+
+            <StashEditor showEditor={showStashEditor} setShowEditor={setShowStashEditor} />
         </>
     );
 };

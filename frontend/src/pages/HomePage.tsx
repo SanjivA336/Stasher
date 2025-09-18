@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -26,13 +25,14 @@ export default function HomePage() {
     const navigate = useNavigate();
     
     const [showStashCreator, setShowStashCreator] = useState(false);
+    const [showStashEditor, setShowStashEditor] = useState(false);
 
     useEffect(() => {
         if (stashLoading) return;
 
         if (loader.is_loaded()) {
-            toast.info("Redirecting to your active stash: " + loader.stash.id);
-            navigate("/stash", { replace: true });
+            toast.info("Redirecting to your active stash: " + loader.stash.name);
+            navigate("/storages", { replace: true });
         }
     }, [stashLoading]);
 
@@ -77,40 +77,68 @@ export default function HomePage() {
                             <Loading />
                         ) : stashes.length === 0 ? (
                             <div className="w-100 d-flex flex-column align-items-center justify-content-center text-center bg-darker border-darkish p-5 gap-2 rounded-4">
-                                <h5 className="text-light m-0">No stashes found.</h5>
-                                <p className="text-muted m-0">Please create a stash to get started.</p>
-                                <div className="col-12 col-sm-9 col-md-6 d-flex flex-row justify-content-center text-center gap-3 m-2">
+                                <h5 className="text-light m-0">No stashes found</h5>
+                                <p className="text-muted m-0">Please join or create a stash to get started.</p>
+                                <div className="w-100 d-flex flex-row gap-2 justify-content-center mt-2">
                                     <ButtonField
                                         onClick={() => {
                                             setShowStashCreator(true);
                                         }}
-                                        className="w-100"
+                                        rounding="3"
+                                        className="w-100 p-3"
                                     >
-                                        <p className="m-2 text-nowrap">Create a stash</p>
+                                        <p className="m-0 text-nowrap">Create a stash</p>
                                     </ButtonField>
 
                                     <ButtonField
                                         onClick={() => {
                                             navigate("/join-stash");
                                         }}
-                                        className="w-100"
+                                        rounding="3"
+                                        className="w-100 p-3"
                                     >
-                                        <p className="m-2 text-nowrap">Join a stash</p>
+                                        <p className="m-0 text-nowrap">Join a stash</p>
                                     </ButtonField>
                                 </div>
                             </div>
                         ) : (
-                            <GenericList<Stash>
-                                items={stashes}
-                                onRefresh={fetchStashes}
-                                onClick={(stash) => {setStashId(stash.id); navigate("/stash");}}
-                                openCreator={() => setShowStashCreator(true)}
-                                searchBar
-                                getItemName={(stash) => stash.name}
-                                defaultLimit={8}
-                                pagination
-                                renderTile={RenderStashTile}
-                            />
+                            <>
+                                <GenericList<Stash>
+                                    items={stashes}
+                                    onRefresh={fetchStashes}
+                                    onClick={(stash) => {setStashId(stash.id); navigate("/storages");}}
+                                    searchBar
+                                    getItemName={(stash) => stash.name}
+                                    defaultLimit={8}
+                                    pagination
+                                    largeTiles="12"
+                                    mediumTiles="6"
+                                    smallTiles="4"
+                                    renderTile={RenderStashTile}
+                                />
+
+                                <div className="d-flex flex-row gap-2 justify-content-center m-3">
+                                    <ButtonField
+                                        onClick={() => {
+                                            setShowStashCreator(true);
+                                        }}
+                                        rounding="3"
+                                        className="w-100 p-3"
+                                    >
+                                        <p className="m-0 text-nowrap">Create a stash</p>
+                                    </ButtonField>
+
+                                    <ButtonField
+                                        onClick={() => {
+                                            navigate("/join-stash");
+                                        }}
+                                        rounding="3"
+                                        className="w-100 p-3"
+                                    >
+                                        <p className="m-0 text-nowrap">Join a stash</p>
+                                    </ButtonField>
+                                </div>
+                            </>
                         )}
                     </div>
 

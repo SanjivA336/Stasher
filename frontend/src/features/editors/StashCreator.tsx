@@ -81,7 +81,7 @@ export function StashCreator({ showCreator, setShowCreator, refresh }: StashCrea
             title="Create a New Stash"
             showModal={showCreator}
             setShowModal={(show) => setShowCreator(show)}
-            width={6}
+            width={6}   
         >
             {loading ? (
                 <Loading />

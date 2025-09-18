@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import type { Stash, Label, Storage, Member } from "@/apis/_schemas";
+import type { Stash, Member, Label, Storage } from "@/apis/_schemas";
 import { StashAPI } from "@/apis/repo_api";
 
 import ButtonField from "@/components/fields/ButtonField";
@@ -13,72 +13,53 @@ import { useStash } from "@/context/stash/StashContext";
 import TabGroup from "@/components/design/TabGroup";
 import GenericList from "../list/GenericList";
 import RenderMemberTile from "../list/RenderMemberTile";
-import { useAuth } from "@/context/auth/AuthContext";
+import RenderLabelTile from "../list/RenderLabelTile";
+import RenderStorageTile from "../list/RenderStorageTile";
 
 type StashEditorProps = {
     showEditor: boolean;
     setShowEditor: (show: boolean) => void;
+    refresh?: () => void;
 }
 
-export function StashEditor({ showEditor, setShowEditor }: StashEditorProps) {
-    const { user } = useAuth();
-    const { loader, setStashId, stashLoading } = useStash();
+export function StashEditor({ showEditor, setShowEditor, refresh }: StashEditorProps) {
+    const { loader, setStashId } = useStash();
 
     const [stash, setStash] = useState<Stash | null>(null);
 
-    const [storages, setStorages] = useState<Storage[]>([]);
-    const [labels, setLabels] = useState<Label[]>([]);
+    const [currentMember, setCurrentMember] = useState<Member | null>(null);
 
     const [members, setMembers] = useState<Member[]>([]);
-    const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+    const [labels, setLabels] = useState<Label[]>([]);
+    const [storages, setStorages] = useState<Storage[]>([]);
 
     const [loading, setLoading] = useState<boolean>(true);
     const [tabNumber, setTabNumber] = useState<number>(0);
 
-    const [editMode, setEditMode] = useState<boolean>(false);
+    const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+    const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
+    const [selectedStorageIds, setSelectedStorageIds] = useState<string[]>([]);
 
-    const [currentMember, setCurrentMember] = useState<Member | null>(null);
 
-    const fetchStash = async () => {
-        if (!loader.is_loaded()) return;
-
+    const fetchStashDetails = async (refresh: boolean = false) => {
         setLoading(true);
         try{
-            const response: Stash = await StashAPI.get(loader.stash.id);
-            setStash(response);
-            fetchStashData();
+            const stashResponse: Stash = await loader.fetch_stash(refresh);
+            const memberResponse: Member[] = await loader.fetch_members(refresh);
+            const labelResponse: Label[] = await loader.fetch_labels(refresh);
+            const storageResponse: Storage[] = await loader.fetch_storages(refresh);
+
+            setStash(stashResponse);
+            setMembers(memberResponse);
+            setLabels(labelResponse);
+            setStorages(storageResponse);
+
+            const currentMember = await loader.fetch_current_member();
+            setCurrentMember(currentMember);
+
         } catch (error) {
             toast.error("Failed to fetch stash details: " + error);
             setStash(null);
-        } finally {
-            
-            setLoading(false);
-        }
-    };
-
-    const fetchStashData = async () => {
-        if (!stash) return;
-
-        setLoading(true);
-        try{
-            const storageResponse: Storage[] = await loader.fetch_storages();
-            storageResponse.sort((a, b) => a.name.localeCompare(b.name));
-            setStorages(storageResponse);
-
-            const labelResponse: Label[] = await loader.fetch_labels();
-            labelResponse.sort((a, b) => a.name.localeCompare(b.name));
-            setLabels(labelResponse);
-
-            const memberResponse: Member[] = await loader.fetch_members();
-            memberResponse.sort((a, b) => a.nickname.localeCompare(b.nickname));
-            memberResponse.sort((a, b) => a.is_admin === b.is_admin ? 0 : a.is_admin ? -1 : 1);
-            setMembers(memberResponse);
-
-        } catch (error) {
-            toast.error("Failed to fetch stash information: " + error);
-            setStorages([]);
-            setLabels([]);
-            setMembers([]);
         } finally {
             setLoading(false);
         }
@@ -89,14 +70,49 @@ export function StashEditor({ showEditor, setShowEditor }: StashEditorProps) {
 
         setLoading(true);
 
+        if (!stash.name || stash.name.trim() === "") {
+            toast.error("Stash name cannot be empty.");
+            setLoading(false);
+            return;
+        }
+
         try {
-            const response: Stash = await StashAPI.update(stash);
+            for (const member of members) {
+                if (!stash.member_ids.includes(member.id)) {
+                    await loader.delete_member(member.id);
+                }
+            }
+
+            for (const storage of storages) {
+                if (!stash.storage_ids.includes(storage.id)) {
+                    await loader.delete_storage(storage.id);
+                }
+            }
+
+            for (const label of labels) {
+                if (!stash.label_ids.includes(label.id)) {
+                    await loader.delete_label(label.id);
+                }
+            }
+
+            const response: Stash = await StashAPI.update({
+                id: stash.id,
+                name: stash.name,
+                address: stash.address,
+                member_ids: stash.member_ids,
+                label_ids: stash.label_ids,
+                storage_ids: stash.storage_ids,
+            });
+
             setStashId(response.id);
             setShowEditor(false);
             toast.success("Stash updated successfully!");
+            if (refresh) {
+                refresh();
+            }
         }
         catch (error) {
-            toast.error("Failed to update stash: " + error);
+            toast.error("Failed to create stash: " + error);
         } finally {
             setLoading(false);
         }
@@ -104,7 +120,7 @@ export function StashEditor({ showEditor, setShowEditor }: StashEditorProps) {
 
     useEffect(() => {
         if (showEditor) {
-            fetchStash();
+            fetchStashDetails();
         } else {
             setStash(null);
         }
@@ -112,137 +128,143 @@ export function StashEditor({ showEditor, setShowEditor }: StashEditorProps) {
 
     return (
         <Modal
-            title={`Edit ${loader.stash?.name || "Stash"}`}
+            title="Edit an Existing Stash"
             showModal={showEditor}
             setShowModal={(show) => setShowEditor(show)}
-            width={6}
-            editMode={currentMember?.is_admin ? editMode : undefined}
-            setEditMode={currentMember?.is_admin ? setEditMode : undefined}
+            width={9}   
         >
             {loading ? (
                 <Loading />
             ) : stash ? (
-                <div className="d-flex flex-row gap-3 justify-content-center align-items-center">
+                <div className="w-100 gap-3 d-flex flex-row">
                     <TabGroup
                         tabNames={["General", "Members", "Labels", "Storages"]}
                         tabNumber={tabNumber}
                         setTabNumber={setTabNumber}
+                        className="col-3 col-md-2"
                         orientation="vertical"
-                        className="col-2"
-                    />
-                    <form className="d-flex flex-column gap-3 col-10 border-darkish border-end-0 border-top-0 border-bottom-0 border-2 ps-3">
 
+                    />
+                    <form className="col-9 col-md-10 d-flex flex-column gap-3">
                         {tabNumber === 0 && (
                             <>
-                                <div className="d-flex flex-column text-center">
-                                    <h5 className="m-0">General</h5>
-                                </div>
-                                
                                 <ShortTextField
                                     value={stash?.name || ""}
                                     setValue={(name) => setStash({ ...stash, name })}
                                     label="Stash Name"
-                                    placeholder={loader.stash?.name || "Enter a name..."}
-                                    disabled={!editMode || loading}
+                                    placeholder="Enter a name..."
                                 />
 
                                 <ShortTextField
                                     value={stash?.address || ""}
                                     setValue={(address) => setStash({ ...stash, address })}
-                                    label="Address (Optional)"
-                                    placeholder={loader.stash?.address || "Enter an address..."}
-                                    disabled={!editMode || loading}
+                                    label="Address (optional)"
+                                    placeholder="Enter an address..."
                                 />
                             </>
                         )}
 
                         {tabNumber === 1 && (
                             <>
-                                <div className="d-flex flex-column text-center">
-                                    <h5 className="m-0">Members</h5>
-                                </div>
-
-                                { editMode && currentMember?.is_admin && (
-                                    <div className="d-flex flex-row justify-content-center align-items-center gap-2">
+                                {currentMember?.is_admin ? (
+                                    <div className="d-flex flex-row w-100 gap-2">
                                         <ButtonField
-                                            onClick={() => {navigator.clipboard.writeText(stash.join_code); toast.success("Join code copied to clipboard!")}}
-                                            className="w-100"
-                                            color="primary"
+                                            onClick={() => { }}
+                                            className="w-100 p-3"
                                             rounding="3"
+                                            loading={loading}
+                                            disabled={selectedMemberIds.length === 0 || members.find(m => m.id === selectedMemberIds[0])?.id === currentMember.id || members.find(m => m.id === selectedMemberIds[0])?.is_admin}
                                         >
-                                            <p className="m-0">Copy Join Code</p>
+                                            <p className="m-0 text-nowrap">Kick Member</p>
                                         </ButtonField>
 
                                         <ButtonField
-                                            onClick={() => {toast.info("Feature coming soon!")}}
-                                            className="w-100"
-                                            color="primary"
+                                            onClick={() => { }}
+                                            className="w-100 p-3"
                                             rounding="3"
-                                            disabled={selectedMemberIds.length === 0 || !currentMember?.is_admin || selectedMemberIds.includes(currentMember?.id || "")}
-                                            outlineVariant={selectedMemberIds.length === 0}
+                                            loading={loading}
+                                            disabled={selectedMemberIds.length === 0 || members.find(m => m.id === selectedMemberIds[0])?.id === currentMember.id || members.find(m => m.id === selectedMemberIds[0])?.is_active}
                                         >
-                                            <p className="m-0">{selectedMemberIds.length > 0 && members.find(member => member.id === selectedMemberIds[0])?.is_admin ? "Demote Member" : "Promote Member"}</p>
+                                            <p className="m-0 text-nowrap">{members.find(m => m.id === selectedMemberIds[0])?.is_admin ? "Demote" : "Promote"} Member</p>
                                         </ButtonField>
 
                                         <ButtonField
-                                            onClick={() => {toast.info("Feature coming soon!")}}
-                                            className="w-100"
-                                            color="danger"
+                                            onClick={() => { }}
+                                            className="w-100 p-3"
                                             rounding="3"
-                                            disabled={selectedMemberIds.length === 0 || !currentMember?.is_admin || selectedMemberIds.includes(currentMember?.id || "")}
-                                            outlineVariant={selectedMemberIds.length === 0}
+                                            loading={loading}
+                                            disabled={selectedMemberIds.length === 0 || members.find(m => m.id === selectedMemberIds[0])?.id === currentMember.id || !members.find(m => m.id === selectedMemberIds[0])?.is_active}
                                         >
-                                            <p className="m-0">Kick Member</p>
+                                            <p className="m-0 text-nowrap">Delete Member</p>
                                         </ButtonField>
                                     </div>
-                                )}
-
-                                <GenericList
-                                    items={members || []}
-                                    onRefresh={fetchStashData}
-                                    getItemName={(member) => member.nickname}
-                                    defaultLimit={16}
-                                    pagination
+                                ) : null}
+                                <GenericList<Member>
+                                    items={members}
+                                    onRefresh={() => fetchStashDetails(true)}
+                                    renderTile={RenderMemberTile}
                                     searchBar
-                                    viewSelector
-                                    defaultView="list"
                                     selectedItemIds={selectedMemberIds}
                                     setSelectedItemIds={setSelectedMemberIds}
-                                    renderTile={RenderMemberTile}
+                                    getItemName={(member) => member.nickname}
+                                    defaultLimit={8}
+                                    pagination
+                                    defaultView="list"
                                 />
                             </>
                         )}
+
                         
                         {tabNumber === 2 && (
-                            <div className="d-flex flex-column text-center">
-                                <h5 className="m-0">Labels</h5>
-                            </div>
+                            <>
+                                <GenericList<Label>
+                                    items={labels}
+                                    onRefresh={() => fetchStashDetails(true)}
+                                    renderTile={RenderLabelTile}
+                                    searchBar
+                                    selectedItemIds={selectedLabelIds}
+                                    setSelectedItemIds={setSelectedLabelIds}
+                                    getItemName={(label) => label.name}
+                                    defaultLimit={8}
+                                    pagination
+                                    defaultView="list"
+                                />
+                            </>
                         )}
 
                         {tabNumber === 3 && (
-                            <div className="d-flex flex-column text-center">
-                                <h5 className="m-0">Storages</h5>
-                            </div>
+                            <>
+                                <GenericList<Storage>
+                                    items={storages}
+                                    onRefresh={() => fetchStashDetails(true)}
+                                    renderTile={RenderStorageTile}
+                                    searchBar
+                                    selectedItemIds={selectedStorageIds}
+                                    setSelectedItemIds={setSelectedStorageIds}
+                                    getItemName={(storage) => storage.name}
+                                    defaultLimit={8}
+                                    pagination
+                                    defaultView="list"
+                                />
+                            </>
                         )}
 
-                        {editMode && (
-                            <div className="d-flex flex-row gap-3 my-2">
-                                <ButtonField
-                                    onClick={() => setShowEditor(false)}
-                                    className="w-100"
-                                    color="danger"
-                                >
-                                    <p className="m-0">Cancel Changes</p>
-                                </ButtonField>
+                        <div className="d-flex flex-row gap-3 my-2">
+                            <ButtonField
+                                onClick={() => setShowEditor(false)}
+                                className="w-100"
+                                color="danger"
+                            >
+                                <p className="m-0">Cancel</p>
+                            </ButtonField>
 
-                                <ButtonField
-                                    onClick={() => saveStash()}
-                                    className="w-100"
-                                >
-                                    <p className="m-0">Save Changes</p>
-                                </ButtonField>
-                            </div>
-                        )}
+                            <ButtonField
+                                onClick={() => saveStash()}
+                                className="w-100"
+                            >
+                                <p className="m-0">Create</p>
+                            </ButtonField>
+                        </div>
                     </form>
                 </div>
             ) : (
@@ -250,7 +272,7 @@ export function StashEditor({ showEditor, setShowEditor }: StashEditorProps) {
                     <h3 className="m-0">Oh No!</h3>
                     <h6 className="my-2">Something went wrong. Please try again.</h6>
                     <ButtonField
-                        onClick={fetchStash}
+                        onClick={() => { fetchStashDetails(true); }}
                         className="w-100 mt-3 p-2"
                     >
                         <h5 className="m-0 text-light">Retry</h5>

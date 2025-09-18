@@ -23,8 +23,7 @@ import RegisterPage from "@/pages/auth/RegisterPage";
 import HomePage from "@/pages/HomePage";
 
 // === Stash Pages ===
-import StashPage from "@/pages/StashPage";
-import StoragePage from "@/pages/StoragePage";
+import StoragesPage from "@/pages/StoragesPage";
 
 export default function App() {
 	return (
@@ -40,8 +39,8 @@ export default function App() {
 							<Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
 
 							{/* Protected Stash Routes */}
-							<Route path="/stash" element={<ProtectedRoute><StashRoute><StashPage /></StashRoute></ProtectedRoute>} />
-							<Route path="/storage/:storageId" element={<ProtectedRoute><StashRoute><StoragePage /></StashRoute></ProtectedRoute>} />
+							<Route path="/storages" element={<ProtectedRoute><StashRoute><StoragesPage /></StashRoute></ProtectedRoute>} />
+							<Route path="/storages/:storage_id" element={<ProtectedRoute><StashRoute><StoragesPage /></StashRoute></ProtectedRoute>} />
 
 							{/* Error Pages */}
 							<Route path="/403" element={<RequestDenied />} />

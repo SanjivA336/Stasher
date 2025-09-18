@@ -3,13 +3,13 @@ import { useStash } from "./StashContext";
 import Loading from "@/components/design/Loading";
 
 export default function ProtectedRoute({ children }: { children: React.JSX.Element }) {
-    const { activeStash, stashLoading } = useStash();
+    const { loader, stashLoading } = useStash();
 
     return (
         <>
             {stashLoading ? (
                 <Loading />
-            ) : activeStash ? (
+            ) : loader.is_loaded() ? (
                 children
             ) : (
                 <Navigate to="/" replace />

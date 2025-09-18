@@ -54,6 +54,18 @@ export class StashLoader {
 
     // Force Loaders
 
+    private async load_stash(): Promise<boolean> {
+        try {
+            this.stash = null;
+            const response: Stash = await StashAPI.get(this.stash!.id);
+            this.stash = response;
+            return true;
+        } catch (error) {
+            this.stash = null;
+            throw new Error("Failed to load stash: " + error);
+        }
+    }
+
     private async load_members(): Promise<boolean> {
         try {
             this.members = {};
@@ -142,6 +154,7 @@ export class StashLoader {
     async load_all(): Promise<boolean> {
         try {
             const results = await Promise.all([
+                this.load_stash(),
                 this.load_members(),
                 this.load_labels(),
                 this.load_storages(),
@@ -191,6 +204,17 @@ export class StashLoader {
     }
 
     // General Fetchers
+
+    async fetch_stash(refresh: boolean=false): Promise<Stash> {
+        try {
+            if (!this.stash || refresh) {
+                await this.load_stash();
+            }
+            return this.stash!;
+        } catch (error) {
+            throw new Error("Failed to fetch stash: " + error);
+        }
+    }
 
     async fetch_members(refresh: boolean=false, admin_only: boolean=false, active_only: boolean=true): Promise<Member[]> {
         try {
@@ -620,6 +644,16 @@ export class StashLoader {
     }
 
     // Special Methods
+
+    async fetch_current_member(refresh: boolean=false): Promise<Member | null> {
+        try {
+            if (!this.current_member_id) return null;
+            const member = await this.fetch_member(this.current_member_id, refresh);
+            return member;
+        } catch (error) {
+            throw new Error("Failed to fetch current member: " + error);
+        }
+    }
 
     async fetch_items_by_storage(storage_id: string, refresh: boolean=false): Promise<Item[]> {
         try {

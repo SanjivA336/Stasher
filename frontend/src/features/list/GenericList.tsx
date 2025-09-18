@@ -26,6 +26,9 @@ type GenericListProps<T extends BaseDocument> = {
     defaultView?: "grid" | "list";
     limitSelector?: boolean;
     defaultLimit?: number;
+    largeTiles?: "3" | "4" | "6" | "12";
+    mediumTiles?: "3" | "4" | "6" | "12";
+    smallTiles?: "3" | "4" | "6" | "12";
     pagination?: boolean;
 
     selectedItemIds?: string[];
@@ -33,10 +36,10 @@ type GenericListProps<T extends BaseDocument> = {
     maxSelect?: number;
     removeFirst?: boolean;
 
-    renderTile: (item: T, onClick: (item: T) => void, onEdit?: (item: T) => void, isSelected?: boolean) => React.ReactNode;
+    renderTile: (item: T, onClick: (item: T) => void, onEdit?: (item: T) => void, isSelected?: boolean, viewStyle?: "grid" | "list") => React.ReactNode;
 }
 
-export function GenericList<T extends BaseDocument>({ items, onRefresh, openEditor, openCreator, onClick, loading, searchBar = false, getItemName, viewSelector = false, defaultView = "grid", limitSelector = false, defaultLimit = 8, pagination = false, selectedItemIds, setSelectedItemIds, maxSelect = 1, removeFirst = true, renderTile }: GenericListProps<T>) {
+export function GenericList<T extends BaseDocument>({ items, onRefresh, openEditor, openCreator, onClick, loading, searchBar = false, getItemName, viewSelector = false, defaultView = "grid", limitSelector = false, defaultLimit = 8, largeTiles="12", mediumTiles="6", smallTiles="3", pagination = false, selectedItemIds, setSelectedItemIds, maxSelect = 1, removeFirst = true, renderTile }: GenericListProps<T>) {
     // === States / Variables / Constants ===
 
     // Search
@@ -212,13 +215,14 @@ export function GenericList<T extends BaseDocument>({ items, onRefresh, openEdit
                         {filteredItems.slice(page * limit, (page + 1) * limit).map((item, index) => (
                             <div 
                                 key={index} 
-                                className={`${view === "grid" ? "col-lg-3 col-sm-6 col-12" : "col-12"} gap-2 p-2 `}
+                                className={`${view === "grid" ? `col-lg-${smallTiles} col-sm-${mediumTiles} col-${largeTiles}` : "col-12"} gap-2 p-2 `}
                             >
                                     {renderTile(
                                         item,
                                         () => handleClick(item),
                                         openEditor,
-                                        (selectedItemIds ? selectedItemIds.includes(item.id) : false)
+                                        (selectedItemIds ? selectedItemIds.includes(item.id) : false),
+                                        view
                                     )}
                             </div>
                         ))}
