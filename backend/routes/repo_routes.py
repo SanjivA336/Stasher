@@ -1,10 +1,10 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from backend.routes.auth_routes import get_current_user, hash_password, verify_password
-from backend.database.repos import user_repo, member_repo, stash_repo, storage_repo, label_repo, item_repo, order_repo, event_repo
-from backend.models import *
-from backend.routes._schemas import *
-from backend.database.firestore_wrapper import firestore_wrapper
+from backend.database import REPO
+from backend.models.models import *
+from backend.models.schemas import *
+from backend.database.firestore import fs
 
 # region === Config === ===
 router = APIRouter()
@@ -14,7 +14,7 @@ router = APIRouter()
 
 # region === Helper Methods === ===
 def get_current_member(user: User, stash_id: str) -> Member:
-    members = member_repo.query([("owner_user_id", "==", user.id), ("stash_id", "==", stash_id), ("is_active", "==", True)])
+    members = REPO.MEMBERS.query([("owner_user_id", "==", user.id), ("stash_id", "==", stash_id), ("is_active", "==", True)])
     if not members:
         raise HTTPException(status_code=404, detail="You do not have access to this stash.")
     
@@ -109,11 +109,11 @@ def user_delete(user_id: str, current_user: User = Depends(get_current_user)):
     if not current_user.id == user.id:
         raise HTTPException(status_code=403, detail="You can only delete your own user account.")
     
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     user.purge(batch)
 
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return True
     raise HTTPException(status_code=500, detail="User deletion failed.")
 
@@ -209,12 +209,12 @@ def member_update(payload: MemberPayload, current_user: User = Depends(get_curre
         message=changes_to_string(changes)
     )
     
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     event_repo.batch_add(batch, event)
     member_repo.batch_update(batch, updated_member)
 
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return updated_member
     raise HTTPException(status_code=500, detail="Member update failed.")
 
@@ -234,11 +234,11 @@ def member_delete(member_id: str, current_user: User = Depends(get_current_user)
     if member.id == current_member.id:
         raise HTTPException(status_code=403, detail="You cannot delete your own member account.")
 
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     member.purge(batch, current_member.id)
     
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return True
     raise HTTPException(status_code=500, detail="Member deletion failed.")
 
@@ -372,7 +372,7 @@ def stash_create(payload: StashPayload, current_user: User = Depends(get_current
     stash.member_ids.append(member.id)
     stash.storage_ids.append(storage.id)
     
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     stash_repo.batch_add(batch, stash)
     storage_repo.batch_add(batch, storage)
@@ -380,7 +380,7 @@ def stash_create(payload: StashPayload, current_user: User = Depends(get_current
     event_repo.batch_add(batch, event)
     user_repo.batch_update(batch, current_user)
     
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return stash
     raise HTTPException(status_code=500, detail="Stash creation failed.")
 
@@ -426,12 +426,12 @@ def stash_update(payload: StashPayload, current_user: User = Depends(get_current
         message=changes_to_string(changes)
     )
 
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     event_repo.batch_add(batch, event)
     stash_repo.batch_update(batch, updated_stash)
 
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return stash
     raise HTTPException(status_code=500, detail="Stash update failed.")
 
@@ -447,11 +447,11 @@ def stash_delete(stash_id: str, current_user: User = Depends(get_current_user)):
     if not current_member.is_admin:
         raise HTTPException(status_code=403, detail="Only admins can delete the stash.")
 
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
 
     stash.purge(batch)
 
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return True
     raise HTTPException(status_code=500, detail="Stash deletion failed.")
 
@@ -575,13 +575,13 @@ def storage_create(payload: StoragePayload, current_user: User = Depends(get_cur
         message=f"Storage '{storage.name}' created."
     )
     
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     storage_repo.batch_add(batch, storage)
     stash_repo.batch_update(batch, stash)
     event_repo.batch_add(batch, event)
     
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return storage
     raise HTTPException(status_code=500, detail="Storage creation failed.")
 
@@ -629,12 +629,12 @@ def storage_update(payload: StoragePayload, current_user: User = Depends(get_cur
         message=changes_to_string(changes)
     )
     
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     event_repo.batch_add(batch, event)
     storage_repo.batch_update(batch, updated_storage)
 
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return storage
     raise HTTPException(status_code=500, detail="Storage update failed.")
 
@@ -654,11 +654,11 @@ def storage_delete(storage_id: str, current_user: User = Depends(get_current_use
     if not current_member.is_admin:
         raise HTTPException(status_code=403, detail="Only admins can delete storages.")
 
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     storage.purge(batch, current_member.id)
 
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return True
     raise HTTPException(status_code=500, detail="Storage deletion failed.")
 
@@ -772,13 +772,13 @@ def label_create(payload: LabelPayload, current_user: User = Depends(get_current
         message=f"Label '{label.name}' created."
     )
     
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     label_repo.batch_add(batch, label)
     stash_repo.batch_update(batch, stash)
     event_repo.batch_add(batch, event)
     
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return label
     raise HTTPException(status_code=500, detail="Label creation failed.")
 
@@ -826,12 +826,12 @@ def label_update(payload: LabelPayload, current_user: User = Depends(get_current
         message=changes_to_string(changes)
     )
     
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     event_repo.batch_add(batch, event)
     label_repo.batch_update(batch, updated_label)
 
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return label
     raise HTTPException(status_code=500, detail="Label update failed.")
 
@@ -851,11 +851,11 @@ def label_delete(label_id: str, current_user: User = Depends(get_current_user)):
     if not current_member.is_admin:
         raise HTTPException(status_code=403, detail="Only admins can delete labels.")
 
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     label.purge(batch, current_member.id)
 
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return True
     raise HTTPException(status_code=500, detail="Label deletion failed.")
 
@@ -991,14 +991,14 @@ def item_create(payload: ItemPayload, current_user: User = Depends(get_current_u
         message=f"Item '{item.name}' created in storage '{storage.name}'."
     )
     
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     item_repo.batch_add(batch, item)
     storage_repo.batch_update(batch, storage)
     label_repo.batch_update(batch, label)
     event_repo.batch_add(batch, event)
     
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return item
     raise HTTPException(status_code=500, detail="Item creation failed.")
 
@@ -1078,12 +1078,12 @@ def item_update(payload: ItemPayload, current_user: User = Depends(get_current_u
         message=changes_to_string(changes)
     )
     
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     event_repo.batch_add(batch, event)
     item_repo.batch_update(batch, updated_item)
     
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return item
     raise HTTPException(status_code=500, detail="Item update failed.")
 
@@ -1100,11 +1100,11 @@ def item_delete(item_id: str, current_user: User = Depends(get_current_user)):
     if not (current_member := get_current_member(current_user, stash.id)):
         raise HTTPException(status_code=403, detail="You do not have access to this stash.")
 
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     item.purge(batch, current_member.id)
 
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return True
     raise HTTPException(status_code=500, detail="Item deletion failed.")
 
@@ -1258,12 +1258,12 @@ def order_create(payload: OrderPayload, current_user: User = Depends(get_current
         message=f"Order created with {len(order.item_ids)} items."
     )
     
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     order_repo.batch_add(batch, order)
     event_repo.batch_add(batch, event)
     
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return order
     raise HTTPException(status_code=500, detail="Order creation failed.")
 
@@ -1311,12 +1311,12 @@ def order_update(payload: OrderPayload, current_user: User = Depends(get_current
         message=changes_to_string(changes)
     )
     
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     event_repo.batch_add(batch, event)
     order_repo.batch_update(batch, updated_order)
     
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return updated_order
     raise HTTPException(status_code=500, detail="Order update failed.")
 
@@ -1336,11 +1336,11 @@ def order_delete(order_id: str, current_user: User = Depends(get_current_user)):
     if not current_member.is_admin:
         raise HTTPException(status_code=403, detail="Only admins can delete orders.")
 
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     order.purge(batch, current_member.id)
 
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return True
     raise HTTPException(status_code=500, detail="Order deletion failed.")
 
@@ -1424,11 +1424,11 @@ def event_create(payload: EventPayload, current_user: User = Depends(get_current
         message=payload.message or "",
     )
 
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     event_repo.batch_add(batch, event)
 
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return event
     raise HTTPException(status_code=500, detail="Event creation failed.")
     
@@ -1468,11 +1468,11 @@ def event_update(payload: EventPayload, current_user: User = Depends(get_current
     if not (changes := event.diff(updated_event)):
         return event
     
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     event_repo.batch_update(batch, updated_event)
 
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return event
     raise HTTPException(status_code=500, detail="Event update failed.")
 
@@ -1492,11 +1492,11 @@ def event_delete(event_id: str, current_user: User = Depends(get_current_user)):
     if not current_member.is_admin:
         raise HTTPException(status_code=403, detail="Only admins can delete events.")
 
-    batch = firestore_wrapper.create_batch()
+    batch = fs.create_batch()
     
     event.purge(batch)
 
-    if firestore_wrapper.commit_batch(batch):
+    if fs.commit_batch(batch):
         return True
     raise HTTPException(status_code=500, detail="Event deletion failed.")
 

@@ -1,7 +1,7 @@
 # database/base_repo.py
 from typing import TypeVar, Generic, Type, List, Optional, Dict, Any
-from backend.models import BaseDocument
-from backend.database.firestore_wrapper import firestore_wrapper
+from backend.models.models import BaseDocument
+from backend.database import fs
 from google.cloud import firestore
 
 from datetime import datetime, timezone
@@ -11,7 +11,7 @@ T = TypeVar("T", bound=BaseDocument)
 
 class BaseRepo(Generic[T]):
     def __init__(self, model_cls: Type[T], collection: str):
-        self._db = firestore_wrapper
+        self._db = fs
         self._collection = collection
         self._model_cls = model_cls
 
@@ -56,7 +56,7 @@ class BaseRepo(Generic[T]):
         doc_ref = self._db._db.collection(self._collection).document(doc_id)
         batch.delete(doc_ref)
     
-from backend.models import (
+from backend.models.models import (
     User, Member, Stash, Storage, Label, Item, Order, Event
 )
 
@@ -68,3 +68,16 @@ label_repo = BaseRepo[Label](Label, "labels")
 item_repo = BaseRepo[Item](Item, "items")
 order_repo = BaseRepo[Order](Order, "orders")
 event_repo = BaseRepo[Event](Event, "events")
+
+class RepoContainer:
+    USERS = user_repo
+    MEMBERS = member_repo
+    STASHES = stash_repo
+    STORAGES = storage_repo
+    LABELS = label_repo
+    ITEMS = item_repo
+    ORDERS = order_repo
+    EVENTS = event_repo
+
+# Export the singleton instance
+REPO = RepoContainer()

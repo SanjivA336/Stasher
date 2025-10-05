@@ -5,8 +5,8 @@ from jose import jwt, JWTError, ExpiredSignatureError # type: ignore
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from backend.database.repos import user_repo
-from backend.models import User
-from backend.routes._schemas import UserPayload, UserProtected
+from backend.models.models import User
+from backend.models.schemas import UserPayload, UserProtected
 
 # === Config ===
 SECRET_KEY = os.environ['JWT_KEY']
