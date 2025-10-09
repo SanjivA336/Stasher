@@ -7,9 +7,12 @@ def changes_to_string(changes: dict) -> str:
         messages.append(f"- **{field}** changed from '{old}' to '{new}'")
     return "\n".join(messages)
 
-def get_current_member(user: User, stash_id: str) -> Member:
-    members = REPO.MEMBERS.query([("owner_user_id", "==", user.id), ("stash_id", "==", stash_id), ("is_active", "==", True)])
-    if not members:
-        raise HTTPException(status_code=404, detail="You do not have access to this stash.")
-    
-    return members[0]
+from container_routes import router as container_router
+from identity_routes import router as identity_router
+from inventory_routes import router as inventory_router
+
+__all__ = [
+    "container_router",
+    "identity_router",
+    "inventory_router",
+]
