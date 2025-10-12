@@ -1,6 +1,5 @@
-import { GET_ENDPOINT, POST_ENDPOINT, BaseAPI } from "./apiCore";
-import type { User, Member, Stash, Item, Event, Order } from "./schemas";
-import type { UserPayload, MemberPayload } from "./schemas";
+import { GET_ENDPOINT, POST_ENDPOINT, BaseAPI } from "@apis/apiCore";
+import type { User, Member, Stash, Item, Event, Order, UserPayload, MemberPayload } from "@apis/schemas";
 
 // === Auth ===
 export class AuthAPI {

@@ -1,4 +1,4 @@
-import type { BaseDocument, BasePayload } from "../apis/schemas";
+import type { BaseDocument, BasePayload } from "@/apis/schemas";
 
 
 const BASE = "http://localhost:8000";
@@ -23,7 +23,10 @@ export async function GET_ENDPOINT<BodyType>(endpoint: string, error?: string): 
         try {
             const data = await res.json();
             detail = data.detail || detail;
-        } catch {}
+        } catch (err) {
+            // Ignore JSON parse errors
+            void err;
+        }
         throw new Error(detail);
     }
     return res.json();
@@ -44,7 +47,10 @@ export async function POST_ENDPOINT<BodyType, ReturnType>(endpoint: string, body
         try {
             const data = await res.json();
             detail = data.detail || detail;
-        } catch {}
+        } catch (err) {
+            // Ignore JSON parse errors
+            void err;
+        }
         throw new Error(detail);
     }
     return res.json();
@@ -65,7 +71,10 @@ export async function PATCH_ENDPOINT<BodyType, ReturnType>(endpoint: string, bod
         try {
             const data = await res.json();
             detail = data.detail || detail;
-        } catch {}
+        } catch (err) {
+            // Ignore JSON parse errors
+            void err;
+        }
         throw new Error(detail);
     }
     return res.json();
@@ -84,7 +93,10 @@ export async function DELETE_ENDPOINT(endpoint: string, error?: string): Promise
         try {
             const data = await res.json();
             detail = data.detail || detail;
-        } catch {}
+        } catch (err) {
+            // Ignore JSON parse errors
+            void err;
+        }
         throw new Error(detail);
     }
     return res.json();

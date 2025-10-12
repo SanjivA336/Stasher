@@ -1,6 +1,5 @@
-import { GET_ENDPOINT, BaseAPI } from "./apiCore";
-import type { Member, Stash, Label, Storage, Item, Event, Order } from "./schemas";
-import type { StashPayload, LabelPayload, StoragePayload } from "./schemas";
+import { GET_ENDPOINT, BaseAPI } from "@apis/apiCore";
+import type { Member, Stash, Label, Storage, Item, Event, Order, StashPayload, LabelPayload, StoragePayload } from "@apis/schemas";
 
 // === Stash ===
 export class StashAPI extends BaseAPI {
