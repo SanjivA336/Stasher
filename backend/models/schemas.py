@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional, List, Dict, Any
-from models import *
+from .models import *
 
 # === Config ===
 EMPTY_STRING = ""

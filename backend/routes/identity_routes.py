@@ -9,7 +9,7 @@ from jose import jwt, JWTError, ExpiredSignatureError # type: ignore
 from datetime import datetime, timedelta, timezone
 from fastapi.security import OAuth2PasswordBearer
 
-from inventory_routes import changes_to_string
+from .routes_helper import changes_to_string
 
 # region === Config === ===
 SECRET_KEY = os.environ['JWT_KEY']
@@ -132,7 +132,7 @@ def save_tokens(response: Response, access_token: str, refresh_token: str):
 
     
 # region === Auth API ===
-@router.post("/login")
+@router.post("/login", response_model=UserProtected)
 def login(payload: UserPayload, response: Response):
     """
     Authenticate user and return access and refresh tokens.
@@ -155,6 +155,8 @@ def login(payload: UserPayload, response: Response):
     refresh_token = create_refresh_token(data={"sub": user.id}, expires_delta=refresh_token_expires)
     
     save_tokens(response, access_token, refresh_token)
+
+    return UserProtected.from_model(user)
 
 @router.post("/refresh")
 def refresh_token(response: Response, refresh_token: str = Cookie(None)):
@@ -218,9 +220,9 @@ def authenticate(response: Response, access_token: str = Cookie(None)):
 
 
 # region === Current API === ===
-@router.get("/current/user", response_model=User)
+@router.get("/current/user", response_model=UserProtected)
 async def get_current_user_route(current_user: User = Depends(get_current_user)):
-    return current_user
+    return UserProtected.from_model(current_user)
 
 @router.get("/current/members/active", response_model=List[Member])
 async def get_current_active_members(current_user: User = Depends(get_current_user)):

@@ -4,21 +4,21 @@ import type { User, Member, Stash, Item, Event, Order, UserPayload, MemberPayloa
 // === Auth ===
 export class AuthAPI {
 
-    static async login(email: string, password_current: string) {
+    static async login(email: string, password_current: string) : Promise<User> {
         const payload: UserPayload = {
             email: email,
             password_current: password_current
         };
-        return POST_ENDPOINT<UserPayload, null>('/login', payload);
+        return POST_ENDPOINT<UserPayload, User>('/login', payload);
     }
 
-    static async register(username: string, email: string, password_current: string) {
+    static async register(username: string, email: string, password_current: string) : Promise<User> {
         const payload: UserPayload = {
             username: username,
             email: email,
             password_current: password_current,
         };
-        return POST_ENDPOINT<UserPayload, null>('/register', payload);
+        return POST_ENDPOINT<UserPayload, User>('/register', payload);
     }
 
     static async authenticate(): Promise<User> {

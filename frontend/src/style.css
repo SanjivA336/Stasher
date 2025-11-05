@@ -1,1 +1,57 @@
 @import "tailwindcss";
+
+@theme {
+    /* === Fonts === */
+    --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-ui-sans: 'Cal Sans', ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-serif: 'Arvo', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --font-mono: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+    /* === UI Colors (light mode) === */
+    --color-foreground: #fbfefd;
+    --color-midground: #f5fcf9;
+    --color-background: #ebfaf3;
+    --color-border: #dfece6;
+    --color-muted: #738c81;
+    --color-accent: #26e08c;
+
+    --color-success: #13ec1e;
+    --color-info: #13ecdd;
+    --color-warning: #ecc113;
+    --color-danger: #ec3013;
+
+    --color-text: #0d0d0d;
+    --color-text-alt: #242827;
+
+
+    /* === Category Colors === */
+    --color-fridge: #3caff3;
+    --color-freezer: #0a74da;
+    --color-pantry: #f3b93c;
+    --color-garden: #57a773;
+    --color-fruits: #ff6b6b;
+    --color-vegetables: #4caf50;
+    --color-grains: #f9a825;
+    --color-protein: #ff8f00;
+    --color-dairy: #64b5f6;
+    --color-fats: #ffb74d;
+    --color-sugars: #e91e63;
+    --color-other: #a67bb5;
+
+    /* === Static / overlay colors === */
+    --color-shadow: rgba(0, 0, 0, 0.5);
+    --color-overlay: rgba(0, 0, 0, 0.3);
+}
+
+/* === Dark mode overrides === */
+.dark {
+    --color-foreground: #181b1a;
+    --color-midground: #0b0e0d;
+    --color-background: #040605;
+    --color-border: #323232;
+    --color-muted: #202020;
+    --color-accent: #27d386;
+
+    --color-text: #ffffff;
+    --color-text-alt: #c5c5c5;
+}

@@ -4,7 +4,7 @@
 from .firestore import fs
 
 # Pre-configured repository instances for each model.
-from repos import REPO
+from .repos import REPO
 
 # Defines all for database package.
 __all__ = [

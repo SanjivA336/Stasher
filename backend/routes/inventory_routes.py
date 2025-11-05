@@ -3,19 +3,12 @@ from backend.database import REPO, fs
 from backend.models import *
 from typing import List, Optional
 
-from identity_routes import get_current_member, get_current_user
+from .identity_routes import get_current_member, get_current_user
+from .routes_helper import changes_to_string
 
 # region === Config === ===
 router = APIRouter()
 #endregion
-
-# region === Helper Methods === ===
-def changes_to_string(changes: dict) -> str:
-    messages = []
-    for field, (old, new) in changes.items():
-        messages.append(f"- **{field}** changed from '{old}' to '{new}'")
-    return "\n".join(messages)
-# endregion
 
 # region === Item API === ===
 @router.get("/item-template", response_model=Item)
