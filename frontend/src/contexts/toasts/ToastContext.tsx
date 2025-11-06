@@ -38,25 +38,20 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
                 {toasts.map((toast) => (
                     <div
                         key={toast.id}
+                        onClick={() => setToasts(current => current.filter(t => t.id !== toast.id))}
                         className={`
                             p-3 px-4
-                            rounded-md shadow-md text-text outline-2 outline-midground
+                            rounded-md shadow-md text-text border-2
                             transition-all duration-500
-                            ${!toast.visible ? "opacity-0" : "opacity-100"}
-                            ${toast.type === "info" ? "bg-info " : ""}
-                            ${toast.type === "warning" ? "bg-warning" : ""}
-                            ${toast.type === "success" ? "bg-success" : ""}
-                            ${toast.type === "danger" ? "bg-danger" : ""}
+                            ${!toast.visible ? "opacity-0 scale-100" : "opacity-100 scale-90"}
+                            ${toast.type === "info" ? "bg-info/20 border-info/80" : ""}
+                            ${toast.type === "warning" ? "bg-warning/20 border-warning/80" : ""}
+                            ${toast.type === "success" ? "bg-success/20 border-success/80" : ""}
+                            ${toast.type === "danger" ? "bg-danger/20 border-danger/80" : ""}
                             hover:scale-105
                         `}
                     >
                         <span>{toast.message}</span>
-                        <button
-                            onClick={() => setToasts(current => current.filter(t => t.id !== toast.id))}
-                            className="ml-3 font-bold hover:text-text-alt"
-                        >
-                            ✕
-                        </button>
                     </div>
                 ))}
             </div>

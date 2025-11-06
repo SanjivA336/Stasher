@@ -10,24 +10,22 @@ import AuthPage from "@pages/AuthPage";
 
 export default function App() {
 	return (
-		<div className="w-100 h-100">
-			<BrowserRouter>
-				<ToastProvider>
-					<AuthProvider>
-						<Routes>
-							<Route path="/auth" element={<GuestRoute><AuthPage /></GuestRoute>} />
+		<BrowserRouter>
+			<ToastProvider>
+				<AuthProvider>
+					<Routes>
+						<Route path="/auth" element={<GuestRoute><AuthPage /></GuestRoute>} />
 
-							{/* Protected Routes */}
-							<Route path="/" element={<UserRoute><HomePage /></UserRoute>} />
+						{/* Protected Routes */}
+						<Route path="/" element={<UserRoute><HomePage /></UserRoute>} />
 
-							{/* Error Pages */}
-							<Route path="/403" element={<div />} />
-							<Route path="/404" element={<div />} />
-							<Route path="*" element={<Navigate to="/404" />} />
-						</Routes>
-					</AuthProvider>
-				</ToastProvider>
-			</BrowserRouter>
-		</div>
+						{/* Error Pages */}
+						<Route path="/403" element={<div />} />
+						<Route path="/404" element={<div />} />
+						<Route path="*" element={<Navigate to="/404" />} />
+					</Routes>
+				</AuthProvider>
+			</ToastProvider>
+		</BrowserRouter>
 	);
 }
