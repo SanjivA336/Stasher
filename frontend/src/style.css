@@ -25,10 +25,13 @@
 
 
     /* === Category Colors === */
-    --color-fridge: #3caff3;
-    --color-freezer: #0a74da;
-    --color-pantry: #f3b93c;
-    --color-garden: #57a773;
+    --color-fridge: #00ccff;
+    --color-freezer: #0099ff;
+    --color-pantry: #cc9900;
+    --color-garden: #00cc66;
+    --color-other: #cccccc;
+
+
     --color-fruits: #ff6b6b;
     --color-vegetables: #4caf50;
     --color-grains: #f9a825;
@@ -36,7 +39,6 @@
     --color-dairy: #64b5f6;
     --color-fats: #ffb74d;
     --color-sugars: #e91e63;
-    --color-other: #a67bb5;
 
     /* === Static / overlay colors === */
     --color-shadow: rgba(0, 0, 0, 0.5);
@@ -46,7 +48,7 @@
 /* === Dark mode overrides === */
 .dark {
     --color-foreground: #181b1a;
-    --color-midground: #0b0e0d;
+    --color-midground: #0c0e0d;
     --color-background: #040605;
     --color-border: #323232;
     --color-muted: #202020;
@@ -54,4 +56,16 @@
 
     --color-text: #ffffff;
     --color-text-alt: #c5c5c5;
+}
+
+@layer utilities {
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .no-scrollbar::-webkit-scrollbar {
+    display: none;
+    }
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+    }
 }

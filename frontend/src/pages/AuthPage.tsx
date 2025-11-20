@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/auth/AuthContextValue";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/contexts/toasts/ToastContextValue";
-import { getError } from "@/utils/testing";
+import { getError } from "@/utils/utilities";
 
 export default function AuthPage() {
     const { login, register, authLoading } = useAuth();

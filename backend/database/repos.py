@@ -19,14 +19,11 @@ class BaseRepo(Generic[T]):
         return self._db.get_document(self._collection, id, self._model_cls)
 
     def add(self, obj: T) -> Optional[T]:
-        obj.created_at = datetime.now(timezone.utc)
-        obj.updated_at = datetime.now(timezone.utc)
         if self._db.add_document(self._collection, obj):
             return self.get(obj.id)
         return None
 
     def update(self, obj: T) -> Optional[T]:
-        obj.updated_at = datetime.now(timezone.utc)
         if self._db.update_document(self._collection, obj.id, obj.model_dump(exclude_unset=True)):
             return self.get(obj.id)
         return None
@@ -42,13 +39,10 @@ class BaseRepo(Generic[T]):
         return self._db.query_collection(self._collection, filters, self._model_cls, limit)
     
     def batch_add(self, batch: firestore.WriteBatch, obj: T):
-        obj.created_at = datetime.now(timezone.utc)
-        obj.updated_at = datetime.now(timezone.utc)
         doc_ref = self._db._db.collection(self._collection).document(obj.id)
         batch.set(doc_ref, obj.model_dump())
 
     def batch_update(self, batch: firestore.WriteBatch, obj: T):
-        obj.updated_at = datetime.now(timezone.utc)
         doc_ref = self._db._db.collection(self._collection).document(obj.id)
         batch.update(doc_ref, obj.model_dump(exclude_unset=True))
     

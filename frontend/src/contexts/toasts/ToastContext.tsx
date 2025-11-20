@@ -28,12 +28,12 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
 		}, lifetime);
 	};
 
-    const clear = () => {
+    const clearToasts = () => {
         setToasts([]);
     };
 
 	return (
-		<ToastContext.Provider value={{ toast, clear }}>
+		<ToastContext.Provider value={{ toast, clearToasts }}>
             <div className="fixed top-5 right-5 z-50 space-y-2">
                 {toasts.map((toast) => (
                     <div

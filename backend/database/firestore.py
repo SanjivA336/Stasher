@@ -56,6 +56,7 @@ class FirestoreWrapper:
         """
         try:
             model.created_at = datetime.now(timezone.utc)
+            model.updated_at = datetime.now(timezone.utc)
             data = model.model_dump()
             self._db.collection(collection).document(model.id).create(data)
             self._logger.info(f"Added document to {collection}/{model.id}")
@@ -87,7 +88,14 @@ class FirestoreWrapper:
         """
         Updates a document's fields and sets updated_at.
         """
-        try:
+        try:            
+            model = self.get_document(collection, doc_id, BaseDocument)
+            if model is None:
+                raise ValueError("Cannot update non-existent document.")
+            
+            if model.updated_at > updates["updated_at"]:
+                raise ValueError("Stale update: document has been modified since last read.")
+            
             updates["updated_at"] = datetime.now(timezone.utc)
             self._db.collection(collection).document(doc_id).update(updates)
             self._logger.info(f"Updated document in {collection}/{doc_id}: {list(updates.keys())}")

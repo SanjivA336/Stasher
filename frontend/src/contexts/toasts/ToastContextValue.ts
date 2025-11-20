@@ -9,7 +9,7 @@ export type Toast = {
 
 export type ToastContextType = {
 	toast: (type: 'info' | 'warning' | 'success' | 'danger', message?: string) => void;
-	clear: () => void;
+	clearToasts: () => void;
 };
 
 export const ToastContext = createContext<ToastContextType | undefined>(undefined);
