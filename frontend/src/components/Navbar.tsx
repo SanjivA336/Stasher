@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { AuthAPI } from "@apis/identityApi";
 import { useState } from "react";
-import { useStash } from "@/contexts/stash/StashContextValue";
+import { useStashData } from "@/contexts/stash/StashContextValue";
 
 import { useToast } from "@/contexts/toasts/ToastContextValue";
 import { getError } from "@/utils/utilities";
@@ -10,7 +10,7 @@ export const NAVBAR_HEIGHT = "60px";
 
 const Navbar = () => {
     const navigate = useNavigate();
-    const { setStashId, stashLoading } = useStash();
+    const ctx = useStashData();
     const toast = useToast();
     const [loading, setLoading] = useState(false);
 
@@ -46,16 +46,16 @@ const Navbar = () => {
 
                     <button
                         className="whitespace-nowrap px-3 py-2 rounded-lg flex flex-row justify-between text-text bg-transparent hover:bg-accent hover:scale-105 transition-all duration-200"
-                        onClick={() => { setStashId(null); navigate("/stashes"); }}
-                        disabled={loading || stashLoading}
+                        onClick={() => { ctx.setActiveStash(null); navigate("/stashes"); }}
+                        disabled={loading}
                     >
                         My Stashes
                     </button>
 
                     <button
                         className="whitespace-nowrap px-3 py-2 rounded-lg flex flex-row justify-between text-text bg-transparent hover:bg-accent hover:scale-105 transition-all duration-200"
-                        onClick={() => { setStashId(null); navigate("/stashes"); }}
-                        disabled={loading || stashLoading}
+                        onClick={() => { navigate("/profile"); }}
+                        disabled={loading}
                     >
                         Profile
                     </button>
@@ -66,7 +66,7 @@ const Navbar = () => {
                     <button
                         className="whitespace-nowrap px-3 py-2 rounded-lg flex flex-row justify-between text-text bg-transparent hover:bg-border hover:scale-105 hover:text-text transition-all duration-200"
                         onClick={() => { navigate("/storages"); }}
-                        disabled={loading || stashLoading}
+                        disabled={loading}
                     >
                         Storages
                     </button>
@@ -74,7 +74,7 @@ const Navbar = () => {
                     <button
                         className="whitespace-nowrap px-3 py-2 rounded-lg flex flex-row justify-between text-text bg-transparent hover:bg-border hover:scale-105 hover:text-text transition-all duration-200"
                         onClick={() => { navigate("/labels"); }}
-                        disabled={loading || stashLoading}
+                        disabled={loading}
                     >
                         Labels
                     </button>
@@ -82,7 +82,7 @@ const Navbar = () => {
                     <button
                         className="whitespace-nowrap px-3 py-2 rounded-lg flex flex-row justify-between text-text bg-transparent hover:bg-border hover:scale-105 hover:text-text transition-all duration-200"
                         onClick={() => { navigate("/history"); }}
-                        disabled={loading || stashLoading}
+                        disabled={loading}
                     >
                         History
                     </button>
@@ -90,7 +90,7 @@ const Navbar = () => {
                     <button
                         className="whitespace-nowrap px-3 py-2 rounded-lg flex flex-row justify-between text-text bg-transparent hover:bg-border hover:scale-105 hover:text-text transition-all duration-200"
                         onClick={() => { setShowStashEditor(true); }}
-                        disabled={loading || stashLoading}
+                        disabled={loading}
                     >
                         Settings
                     </button>
@@ -98,7 +98,7 @@ const Navbar = () => {
                     <button
                         className="whitespace-nowrap px-3 py-2 rounded-lg flex flex-row justify-between text-danger border-2 border-danger/50 bg-transparent hover:bg-danger hover:scale-105 hover:border-danger hover:text-text transition-all duration-200"
                         onClick={handleLogout}
-                        disabled={loading || stashLoading}
+                        disabled={loading}
                     >
                         Logout
                     </button>

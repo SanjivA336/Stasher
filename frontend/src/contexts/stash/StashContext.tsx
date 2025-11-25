@@ -14,28 +14,36 @@ export const StashProvider = ({ children }: { children: React.ReactNode }) => {
     const { user } = useAuth();
     const toast = useToast();
 
-    const [loading, setLoading] = useState(true);
     const [stashId, setStashId] = useState<string | null>(null);
+    const [loadingContext, setLoadingContext] = useState<boolean>(false);
 
+    // States as Maps
     const [stash, setStash] = useState<Stash | null>(null);
-    const [members, setMembers] = useState<Member[]>([]);
-    const [storages, setStorages] = useState<Storage[]>([]);
-    const [labels, setLabels] = useState<Label[]>([]);
-    const [items, setItems] = useState<Item[]>([]);
-    const [orders, setOrders] = useState<Order[]>([]);
+    const [members, setMembers] = useState<Map<string, Member>>(new Map());
+    const [storages, setStorages] = useState<Map<string, Storage>>(new Map());
+    const [labels, setLabels] = useState<Map<string, Label>>(new Map());
+    const [items, setItems] = useState<Map<string, Item>>(new Map());
+    const [orders, setOrders] = useState<Map<string, Order>>(new Map());
 
-    // Single listeners
+    // Listeners
     const stashListener = useRef<RealtimeDocument<Stash> | null>(null);
     const membersListener = useRef<RealtimeQuery<Member> | null>(null);
     const storagesListener = useRef<RealtimeQuery<Storage> | null>(null);
     const labelsListener = useRef<RealtimeQuery<Label> | null>(null);
     const ordersListener = useRef<RealtimeQuery<Order> | null>(null);
-
-    // Multi listener for items
     const itemsListeners = useRef<RealtimeQuery<Item>[] | null>(null);
 
+    // Loading states
+    const [loadingStash, setLoadingStash] = useState<boolean>(loadingContext);
+    const [loadingMembers, setLoadingMembers] = useState<boolean>(loadingContext);
+    const [loadingStorages, setLoadingStorages] = useState<boolean>(loadingContext);
+    const [loadingLabels, setLoadingLabels] = useState<boolean>(loadingContext);
+    const [loadingItems, setLoadingItems] = useState<boolean>(loadingContext);
+    const [loadingOrders, setLoadingOrders] = useState<boolean>(loadingContext);
+
+
     const setActiveStash = async (id: string | null) => {
-        setLoading(true);
+        setLoadingContext(true);
 
         try {
             if (id) {
@@ -57,7 +65,7 @@ export const StashProvider = ({ children }: { children: React.ReactNode }) => {
             localStorage.removeItem(STASH_ID_LOCATION);
         }
 
-        setLoading(false);
+        setLoadingContext(false);
     };
 
     useEffect(() => {
@@ -70,47 +78,47 @@ export const StashProvider = ({ children }: { children: React.ReactNode }) => {
 
         // Stash
         stashListener.current?.stop();
+        setLoadingStash(true);
         stashListener.current = new RealtimeDocument<Stash>("stashes", stashId);
-        stashListener.current.listen(setStash);
+        stashListener.current.listen(doc => {
+            setStash(doc);
+            setLoadingStash(false);
+        });
 
         // Members
         membersListener.current?.stop();
-        membersListener.current = new RealtimeQuery<Member>(
-            "members",
-            [where("stash_id", "==", stashId)]
-        );
+        setLoadingMembers(true);
+        membersListener.current = new RealtimeQuery<Member>("members", [where("stash_id", "==", stashId)]);
         membersListener.current.listen(changes => {
             setMembers(prev => applyChanges(prev, changes));
+            setLoadingMembers(false);
         });
 
         // Storages
         storagesListener.current?.stop();
-        storagesListener.current = new RealtimeQuery<Storage>(
-            "storages",
-            [where("stash_id", "==", stashId)]
-        );
+        setLoadingStorages(true);
+        storagesListener.current = new RealtimeQuery<Storage>("storages", [where("stash_id", "==", stashId)]);
         storagesListener.current.listen(changes => {
             setStorages(prev => applyChanges(prev, changes));
+            setLoadingStorages(false);
         });
 
         // Labels
         labelsListener.current?.stop();
-        labelsListener.current = new RealtimeQuery<Label>(
-            "labels",
-            [where("stash_id", "==", stashId)]
-        );
+        setLoadingLabels(true);
+        labelsListener.current = new RealtimeQuery<Label>("labels", [where("stash_id", "==", stashId)]);
         labelsListener.current.listen(changes => {
             setLabels(prev => applyChanges(prev, changes));
+            setLoadingLabels(false);
         });
 
         // Orders
         ordersListener.current?.stop();
-        ordersListener.current = new RealtimeQuery<Order>(
-            "orders",
-            [where("stash_id", "==", stashId)]
-        );
+        setLoadingOrders(true);
+        ordersListener.current = new RealtimeQuery<Order>("orders", [where("stash_id", "==", stashId)]);
         ordersListener.current.listen(changes => {
             setOrders(prev => applyChanges(prev, changes));
+            setLoadingOrders(false);
         });
 
         return () => {
@@ -123,30 +131,29 @@ export const StashProvider = ({ children }: { children: React.ReactNode }) => {
     }, [stashId]);
 
     useEffect(() => {
-        if (!stashId || storages.length === 0) {
-            setItems([]);
+        if (!stashId || storages.size === 0) {
+            setItems(new Map());
+            setLoadingItems(false);
             return;
         }
 
-        const queries: RealtimeQuery<Item>[] = [];
+        setLoadingItems(true);
 
+        const queries: RealtimeQuery<Item>[] = [];
         const itemMap = new Map<string, Item>();
 
-        for (const storage of storages) {
+
+        for (const storage of storages.values()) {
             const q = new RealtimeQuery<Item>("items", [where("storage_id", "==", storage.id)]);
             queries.push(q);
 
-            q.listen((changes) => {
-                // Apply each change type to the map
-                changes.forEach(change => {
-                    if (change.type === "added" || change.type === "modified") {
-                        itemMap.set(change.doc.id, change.doc);
-                    } else if (change.type === "removed") {
-                        itemMap.delete(change.doc.id);
-                    }
+            q.listen(changes => {
+                changes.forEach(c => {
+                    if (c.type === "added" || c.type === "modified") itemMap.set(c.doc.id, c.doc);
+                    else if (c.type === "removed") itemMap.delete(c.doc.id);
                 });
-
-                setItems(Array.from(itemMap.values()));
+                setItems(new Map(itemMap));
+                setLoadingItems(false);
             });
         }
 
@@ -154,22 +161,31 @@ export const StashProvider = ({ children }: { children: React.ReactNode }) => {
 
         return () => {
             queries.forEach(q => q.stop());
+            itemsListeners.current = null;
+            setLoadingItems(false);
         };
     }, [storages, stashId]);
-
 
     return (
         <StashContext.Provider
             value={{
                 stashId,
                 setActiveStash,
-                stashLoading: loading,
+                loadingContext,
+
                 stash,
                 members,
                 storages,
                 labels,
                 items,
-                orders
+                orders,
+
+                loadingStash,
+                loadingMembers,
+                loadingStorages,
+                loadingLabels,
+                loadingItems,
+                loadingOrders
             }}
         >
             {children}

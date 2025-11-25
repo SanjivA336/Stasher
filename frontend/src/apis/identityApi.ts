@@ -29,6 +29,10 @@ export class AuthAPI {
         return POST_ENDPOINT('/refresh', {});
     }
 
+    static async firebase_token(): Promise<string> {
+        return POST_ENDPOINT<null, string>('/firebase-token', null);
+    }
+
     static async logout() {
         return POST_ENDPOINT('/logout', {});
     }

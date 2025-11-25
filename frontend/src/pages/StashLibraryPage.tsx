@@ -1,9 +1,8 @@
-import { StashAPI } from "@/apis/containerApi";
 import { UserAPI } from "@/apis/identityApi";
 import type { Stash } from "@/apis/schemas";
 import Spinner from "@/components/spinner";
 import { useUser } from "@/contexts/auth/AuthContextValue";
-import { useStashSettings } from "@/contexts/stash/StashContextValue";
+import { useStash } from "@/contexts/stash/StashContextValue";
 import { useToast } from "@/contexts/toasts/ToastContextValue";
 import { getError } from "@/utils/utilities";
 import { useEffect, useState } from "react";
@@ -12,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 export default function StashLibraryPage() {
 
     const user = useUser();
-    const { setStashId } = useStashSettings();
+    const { setActiveStash } = useStash();
     const toast = useToast();
     const navigate = useNavigate();
 
@@ -36,11 +35,10 @@ export default function StashLibraryPage() {
         fetchStashes();
     }, [user]);
 
-    const selectStash = async (stashId: string) => {
+    const openStash = async (stashId: string) => {
         setLoading(true);
         try {
-            const response: Stash = await StashAPI.get(stashId);
-            setStashId(response.id);
+            setActiveStash(stashId);
             navigate(`/storages`);
         } catch (error) {
             toast('danger', getError(error));
@@ -82,7 +80,7 @@ export default function StashLibraryPage() {
             ) : (
                 <div className="w-full max-w-2xl">
                     {stashes.map((stash) => (
-                        <div key={stash.id} onClick={selectStash.bind(null, stash.id)} className="p-4 rounded-2xl flex flex-row justify-between text-text-alt border-2 border-border bg-foreground hover:bg-accent hover:scale-105 hover:border-accent hover:text-text transition-all duration-200">
+                        <div key={stash.id} onClick={openStash.bind(null, stash.id)} className="p-4 rounded-2xl flex flex-row justify-between text-text-alt border-2 border-border bg-foreground hover:bg-accent hover:scale-105 hover:border-accent hover:text-text transition-all duration-200">
                             <div className="flex flex-col gap-1 justify-center">
                                 <h3 className="text-xl text-text font-semibold">{stash.name}</h3>
                                 <p className="text-sm font-normal">{stash.address}</p>

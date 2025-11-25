@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, Depends, HTTPException, status, Cookie, Response
 from backend.database import REPO, fs
 from backend.models import *
@@ -10,6 +11,8 @@ from datetime import datetime, timedelta, timezone
 from fastapi.security import OAuth2PasswordBearer
 
 from .routes_helper import changes_to_string
+import firebase_admin
+from firebase_admin import credentials, auth
 
 # region === Config === ===
 SECRET_KEY = os.environ['JWT_KEY']
@@ -23,6 +26,27 @@ REFRESH_TOKEN_EXPIRE_MINUTES = REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter()
+
+def get_firebase_admin_cred():
+    creds_json = os.environ.get("FIREBASE_CREDENTIALS")
+    if creds_json:
+        try:
+            service_account_info = json.loads(creds_json)
+            return credentials.Certificate(service_account_info)
+        except Exception as e:
+            raise RuntimeError("Failed to parse FIREBASE_CREDENTIALS: " + str(e))
+
+    creds_path = os.environ.get("FIREBASE_CREDENTIALS_PATH", "backend/Keys/pantry-firebase-serviceAccount.json")
+    if os.path.exists(creds_path):
+        try:
+            return credentials.Certificate(creds_path)
+        except Exception as e:
+            raise RuntimeError("Failed to load credentials from file: " + str(e))
+
+    raise RuntimeError("No Firebase credentials found.")
+
+cred = get_firebase_admin_cred()
+firebase_admin.initialize_app(cred)
 #endregion
 
 # region === Helper Methods === ===
@@ -157,32 +181,6 @@ def login(payload: UserPayload, response: Response):
     save_tokens(response, access_token, refresh_token)
 
     return UserProtected.from_model(user)
-
-@router.post("/refresh")
-def refresh_token(response: Response, refresh_token: str = Cookie(None)):
-    """
-    Refresh the access token using a valid refresh token from the cookie.
-    The refresh token must be valid and not expired.
-    """
-    if not refresh_token:
-        raise HTTPException(status_code=401, detail="Refresh token missing")
-
-    payload = decode_token(refresh_token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
-    
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
-    
-    user = REPO.USERS.get(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": str(user.id)}, expires_delta=access_token_expires)
-
-    save_tokens(response, access_token, refresh_token)
     
 @router.post("/logout")
 def logout(response: Response):
@@ -216,6 +214,42 @@ def authenticate(response: Response, access_token: str = Cookie(None)):
         raise HTTPException(status_code=404, detail="User not found")
     
     return UserProtected.from_model(user)
+
+@router.post("/refresh")
+def refresh(response: Response, refresh_token: str = Cookie(None)):
+    """
+    Refresh the access token using a valid refresh token from the cookie.
+    The refresh token must be valid and not expired.
+    """
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Refresh token missing")
+
+    payload = decode_token(refresh_token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    
+    user = REPO.USERS.get(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(data={"sub": str(user.id)}, expires_delta=access_token_expires)
+
+    save_tokens(response, access_token, refresh_token)
+
+@router.post("/firebase-token")
+def get_custom_token(current_user: User = Depends(get_current_user)):
+    try:
+        # user.id must uniquely identify the user (string)
+        custom_token = auth.create_custom_token(str(current_user.id))
+        return {"custom_token": custom_token.decode("utf-8")}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to create Firebase custom token")
+
 # endregion
 
 

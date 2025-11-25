@@ -62,18 +62,13 @@ export class RealtimeQuery<T> {
 }
 
 export const applyChanges = <T extends { id: string }>(
-    current: T[],
-    changes: Change<T>[]
-): T[] => {
-    let updated = [...current];
-    changes.forEach(change => {
-        if (change.type === "added") {
-            updated.push(change.doc);
-        } else if (change.type === "modified") {
-            updated = updated.map(d => d.id === change.doc.id ? change.doc : d);
-        } else if (change.type === "removed") {
-            updated = updated.filter(d => d.id !== change.doc.id);
-        }
+    prev: Map<string, T>,
+    changes: { type: "added" | "modified" | "removed"; doc: T }[]
+): Map<string, T> => {
+    const next = new Map(prev);
+    changes.forEach(c => {
+        if (c.type === "added" || c.type === "modified") next.set(c.doc.id, c.doc);
+        else if (c.type === "removed") next.delete(c.doc.id);
     });
-    return updated;
+    return next;
 };
