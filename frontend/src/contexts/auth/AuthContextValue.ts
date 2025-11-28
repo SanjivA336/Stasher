@@ -4,6 +4,7 @@ import type { User } from "@/apis/schemas";
 export type AuthContextType = {
 	user: User | null;
     authLoading: boolean;
+    actionLoading: boolean;
 
     login: (email: string, password: string) => Promise<void>;
     register: (username: string, email: string, password: string, confirm: string) => Promise<void>;

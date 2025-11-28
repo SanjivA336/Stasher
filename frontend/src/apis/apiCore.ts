@@ -2,11 +2,21 @@ import type { BaseDocument, BasePayload } from "@/apis/schemas";
 import { auth } from "./firebase";
 
 const BASE = "http://localhost:8000";
-const fetch_idToken = async (forceRefresh = false): Promise<string> => {
+
+export const fetch_idToken = async (forceRefresh = false): Promise<string> => {
     const user = auth.currentUser;
-    if (!user) throw new Error("User is not authenticated");
-    return await user.getIdToken(forceRefresh);
+    if (!user) throw new Error("No authenticated user found.");
+
+    const token = await user.getIdToken(forceRefresh);
+
+    // Ensure token is not used too early after refresh with a short fixed delay
+    if (forceRefresh) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    return token;
 };
+
 
 async function BASE_ENDPOINT<BodyType, ReturnType>(endpoint: string, method: "GET" | "POST" | "PATCH" | "DELETE", body?: BodyType, error?: string): Promise<ReturnType> {
 
@@ -35,6 +45,7 @@ async function BASE_ENDPOINT<BodyType, ReturnType>(endpoint: string, method: "GE
 
     // Retry once if unauthorized
     if (res.status === 401) {
+        await new Promise(resolve => setTimeout(resolve, 500));
         res = await attempt(true);
     }
 

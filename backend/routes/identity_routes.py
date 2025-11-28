@@ -14,10 +14,6 @@ import firebase_admin
 from firebase_admin import credentials, auth
 
 # region === Config === ===
-SECRET_KEY = os.environ['JWT_KEY']
-if not SECRET_KEY:
-    raise ValueError("JWT_KEY environment variable not set.")
-
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 REFRESH_TOKEN_EXPIRE_DAYS = 7
@@ -52,19 +48,19 @@ firebase_admin.initialize_app(cred)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 def get_current_user(authorization: str = Header(None)):
     if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing auth token")
+        raise HTTPException(status_code=401, detail="Missing auth token.")
 
     token = authorization.split(" ")[1]
 
     try:
         decoded = auth.verify_id_token(token)
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid auth token")
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid auth token." + str(e))
 
     uid = decoded["uid"]
     user = REPO.USERS.get(uid)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found.")
 
     return user
 

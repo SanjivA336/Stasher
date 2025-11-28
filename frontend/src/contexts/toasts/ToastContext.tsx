@@ -49,6 +49,7 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
                             ${toast.type === "success" ? "bg-success/20 border-success/80" : ""}
                             ${toast.type === "danger" ? "bg-danger/20 border-danger/80" : ""}
                             hover:scale-105
+                            pointer-events-none
                         `}
                     >
                         <span>{toast.message}</span>
