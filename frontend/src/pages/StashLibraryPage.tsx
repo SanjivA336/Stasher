@@ -1,5 +1,6 @@
 import { UserAPI } from "@/apis/identityApi";
 import type { Stash } from "@/apis/schemas";
+import Navbar from "@/components/Navbar";
 import Spinner from "@/components/spinner";
 import { useUser } from "@/contexts/auth/AuthContextValue";
 import { useStash } from "@/contexts/stash/StashContextValue";
@@ -50,6 +51,7 @@ export default function StashLibraryPage() {
 
     return (
         <div className="min-h-screen flex flex-col gap-5 items-center justify-center bg-background text-text">
+            <Navbar />
             <h1 className="text-4xl font-bold">Welcome back, <span className="text-accent">{user.username}</span>.</h1>
 
             <h2 className="text-xl font-semibold text-center">Choose, create, or join a Stash to continue.</h2>

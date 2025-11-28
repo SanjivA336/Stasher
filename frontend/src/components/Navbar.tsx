@@ -1,17 +1,17 @@
 import { useNavigate } from "react-router-dom";
-import { AuthAPI } from "@apis/identityApi";
 import { useState } from "react";
 import { useStashData } from "@/contexts/stash/StashContextValue";
 
 import { useToast } from "@/contexts/toasts/ToastContextValue";
 import { getError } from "@/utils/utilities";
 import StashEditor from "@/features/StashEditor";
+import { useAuth } from "@/contexts/auth/AuthContextValue";
 export const NAVBAR_HEIGHT = "60px";
 
 const Navbar = () => {
     const navigate = useNavigate();
-    const ctx = useStashData();
     const toast = useToast();
+    const { logout } = useAuth();
     const [loading, setLoading] = useState(false);
 
     const [showStashEditor, setShowStashEditor] = useState(false);
@@ -22,7 +22,7 @@ const Navbar = () => {
         setLoading(true);
 
         try {
-            await AuthAPI.logout();
+            await logout();
             window.location.reload();
         } catch (error) {
             toast('danger', getError(error));
@@ -46,7 +46,7 @@ const Navbar = () => {
 
                     <button
                         className="whitespace-nowrap px-3 py-2 rounded-lg flex flex-row justify-between text-text bg-transparent hover:bg-accent hover:scale-105 transition-all duration-200"
-                        onClick={() => { ctx.setActiveStash(null); navigate("/stashes"); }}
+                        onClick={() => { navigate("/stashes"); }}
                         disabled={loading}
                     >
                         My Stashes

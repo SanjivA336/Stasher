@@ -1,13 +1,12 @@
 import json
-from fastapi import APIRouter, Depends, HTTPException, status, Cookie, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Header
 from backend.database import REPO, fs
 from backend.models import *
-from typing import List, Optional
+from typing import List
 
 import os
-from passlib.context import CryptContext # type: ignore
-from jose import jwt, JWTError, ExpiredSignatureError # type: ignore
-from datetime import datetime, timedelta, timezone
+from passlib.context import CryptContext
+from datetime import timedelta
 from fastapi.security import OAuth2PasswordBearer
 
 from .routes_helper import changes_to_string
@@ -51,20 +50,19 @@ firebase_admin.initialize_app(cred)
 
 # region === Helper Methods === ===
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-def get_current_user(access_token: str = Cookie(None)):
-    """
-    Dependency to get the current authenticated user from the JWT access token.
-    Raises 401 if invalid or expired.
-    """
-    payload = decode_token(access_token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    user = REPO.USERS.get(user_id)
+def get_current_user(authorization: str = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing auth token")
+
+    token = authorization.split(" ")[1]
+
+    try:
+        decoded = auth.verify_id_token(token)
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid auth token")
+
+    uid = decoded["uid"]
+    user = REPO.USERS.get(uid)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -76,182 +74,7 @@ def get_current_member(user: User, stash_id: str) -> Member:
         raise HTTPException(status_code=404, detail="You do not have access to this stash.")
     
     return members[0]
-
-def hash_password(password: str) -> str:
-    """
-    Hash a plain text password using bcrypt.
-    :param password: The plain text password to hash.
-    :return: The hashed password.
-    """
-    return pwd_context.hash(password)
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """
-    Verify a plain password against a hashed password.
-    """
-    return pwd_context.verify(plain_password, hashed_password)
-
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """
-    Create an access token with an expiration date.
-    If expires_delta is None, defaults to ACCESS_TOKEN_EXPIRE_MINUTES.
-    """
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    
-def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """
-    Create a refresh token with an expiration date.
-    If expires_delta is None, defaults to REFRESH_TOKEN_EXPIRE_DAYS.
-    """
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-def decode_token(token: str) -> Optional[dict]:
-    """
-    Decode a JWT token and return the payload.
-    Returns None if the token is invalid or expired.
-    Raises HTTPException if the token is expired.
-    """
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
-    except ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except JWTError:
-        return None
-
-def save_tokens(response: Response, access_token: str, refresh_token: str):
-    """
-    Save access and refresh tokens in HTTP-only cookies.
-    """
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        samesite="lax",
-        secure=False
-    )
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        httponly=True,
-        max_age=REFRESH_TOKEN_EXPIRE_MINUTES * 60,
-        samesite="lax",
-        secure=False
-    )
-    
 # endregion
-
-    
-# region === Auth API ===
-@router.post("/login", response_model=UserProtected)
-def login(payload: UserPayload, response: Response):
-    """
-    Authenticate user and return access and refresh tokens.
-    The user must provide valid email and password.
-    """
-    if( not payload.email or not payload.password_current):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email and password are required")
-
-    users = REPO.USERS.query([('email','==', payload.email.strip().lower())])
-    if not users:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No account with that email exists")
-    
-    user = users[0]
-    
-    if not verify_password(payload.password_current, user.password_hashed):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Password is incorrect")
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": user.id}, expires_delta=access_token_expires)
-    refresh_token_expires = timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
-    refresh_token = create_refresh_token(data={"sub": user.id}, expires_delta=refresh_token_expires)
-    
-    save_tokens(response, access_token, refresh_token)
-
-    return UserProtected.from_model(user)
-    
-@router.post("/logout")
-def logout(response: Response):
-    """
-    Log out the user by clearing the access and refresh tokens.
-    This will remove the cookies set for authentication.
-    """
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
-    return {"detail": "Logged out successfully"}
-
-@router.post("/authenticate", response_model=UserProtected)
-def authenticate(response: Response, access_token: str = Cookie(None)):
-    """
-    Authenticate the user using the access token from the cookie.
-    Returns user details if the token is valid.
-    """
-    if not access_token:
-        raise HTTPException(status_code=401, detail="Access token missing")
-    
-    payload = decode_token(access_token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    user = REPO.USERS.get(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    return UserProtected.from_model(user)
-
-@router.post("/refresh")
-def refresh(response: Response, refresh_token: str = Cookie(None)):
-    """
-    Refresh the access token using a valid refresh token from the cookie.
-    The refresh token must be valid and not expired.
-    """
-    if not refresh_token:
-        raise HTTPException(status_code=401, detail="Refresh token missing")
-
-    payload = decode_token(refresh_token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
-    
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
-    
-    user = REPO.USERS.get(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": str(user.id)}, expires_delta=access_token_expires)
-
-    save_tokens(response, access_token, refresh_token)
-
-@router.post("/firebase-token")
-def get_custom_token(current_user: User = Depends(get_current_user)):
-    try:
-        # user.id must uniquely identify the user (string)
-        custom_token = auth.create_custom_token(str(current_user.id))
-        return {"custom_token": custom_token.decode("utf-8")}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Failed to create Firebase custom token")
-
-# endregion
-
 
 # region === Current API === ===
 @router.get("/current/user", response_model=UserProtected)
@@ -281,6 +104,9 @@ def user_get_template():
 
 @router.post("/user", response_model=UserProtected)
 def user_create(payload: UserPayload, response: Response):
+    if not payload.id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User ID is required.")
+    
     if not payload.username:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username is required.")
     
@@ -294,22 +120,17 @@ def user_create(payload: UserPayload, response: Response):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="An account with that email already exists.")
     
     user = User(
+        id=payload.id,
         username=payload.username,
         email=payload.email,
-        password_hashed=hash_password(payload.password_current)
+        password_hashed=pwd_context.hash(payload.password_current)
     )
 
-    id = REPO.USERS.add(user)
-    if not id:
+    created = REPO.USERS.add(user)
+    if not created:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="User registration failed")
+    return created
     
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": str(id)}, expires_delta=access_token_expires)
-    refresh_token_expires = timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
-    refresh_token = create_refresh_token(data={"sub": str(id)}, expires_delta=refresh_token_expires)
-
-    save_tokens(response, access_token, refresh_token)
-
 @router.get("/user/{user_id}", response_model=UserProtected)
 def user_get(user_id: str, current_user: User = Depends(get_current_user)):
     if (user := REPO.USERS.get(user_id)):
@@ -332,14 +153,14 @@ def user_update(payload: UserPayload, current_user: User = Depends(get_current_u
         if not payload.password_current:
             raise HTTPException(status_code=400, detail="Current password is required to set a new password.")
         
-        if not verify_password(payload.password_current, user.password_hashed):
+        if not pwd_context.verify(payload.password_current, user.password_hashed):
             raise HTTPException(status_code=403, detail="Current password is incorrect.")
         
         if payload.password_new == payload.password_current:
             raise HTTPException(status_code=400, detail="New password cannot be the same as the old password.")
-        
-        user.password_hashed = hash_password(payload.password_new)
-    
+
+        user.password_hashed = pwd_context.hash(payload.password_new)
+
     if payload.email and payload.email != user.email:
         if len(REPO.USERS.query([('email','==', payload.email.strip().lower())])) > 0:
             raise HTTPException(status_code=400, detail="An account with that email already exists.")

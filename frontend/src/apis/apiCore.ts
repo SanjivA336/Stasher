@@ -1,7 +1,61 @@
 import type { BaseDocument, BasePayload } from "@/apis/schemas";
-
+import { auth } from "./firebase";
 
 const BASE = "http://localhost:8000";
+const fetch_idToken = async (forceRefresh = false): Promise<string> => {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User is not authenticated");
+    return await user.getIdToken(forceRefresh);
+};
+
+async function BASE_ENDPOINT<BodyType, ReturnType>(endpoint: string, method: "GET" | "POST" | "PATCH" | "DELETE", body?: BodyType, error?: string): Promise<ReturnType> {
+
+    const attempt = async (forceRefresh: boolean) => {
+        const idToken = await fetch_idToken(forceRefresh);
+
+        let res;
+        try {
+            res = await fetch(`${BASE}${endpoint}`, {
+                method,
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${idToken}`
+                },
+                body: body ? JSON.stringify(body) : undefined
+            });
+        } catch {
+            throw new Error("Network request failed");
+        }
+
+        return res;
+    };
+
+    // First request with cached token
+    let res = await attempt(false);
+
+    // Retry once if unauthorized
+    if (res.status === 401) {
+        res = await attempt(true);
+    }
+
+    // If still not OK, throw meaningful error
+    if (!res.ok) {
+        let detail = error ? error : `${method} Request to '${endpoint}' Failed`;
+        try {
+            const data = await res.json();
+            detail = data.detail || detail;
+        } catch { /* ignore */ }
+        throw new Error(detail);
+    }
+
+    // No content
+    if (res.status === 204) {
+        return undefined as ReturnType;
+    }
+
+    return res.json();
+}
+
 
 /**
  * Makes a GET request to the specified endpoint. Used to fetch resources.
@@ -13,93 +67,31 @@ const BASE = "http://localhost:8000";
  * @example
  */
 export async function GET_ENDPOINT<BodyType>(endpoint: string, error?: string): Promise<BodyType> {
-    const res = await fetch(`${BASE}${endpoint}`, {
-        method: "GET",
-        credentials: "include",
-    });
-    if (!res.ok) {
-        // Try to extract error message from response
-        let detail = error ? error : `GET Request to '${endpoint}' Failed`;
-        try {
-            const data = await res.json();
-            detail = data.detail || detail;
-        } catch (err) {
-            // Ignore JSON parse errors
-            void err;
-        }
-        throw new Error(detail);
-    }
-    return res.json();
+    return await BASE_ENDPOINT<null, BodyType>(endpoint, "GET", undefined, error) as BodyType;
 }
 
 /**
  * Makes a POST request to the specified endpoint with the provided body. Used to create resources.
  */
 export async function POST_ENDPOINT<BodyType, ReturnType>(endpoint: string, body: BodyType, error?: string): Promise<ReturnType> {
-    const res = await fetch(`${BASE}${endpoint}`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-    });
-    if (!res.ok) {
-        let detail = error ? error : `POST Request to '${endpoint}' Failed`;
-        try {
-            const data = await res.json();
-            detail = data.detail || detail;
-        } catch (err) {
-            // Ignore JSON parse errors
-            void err;
-        }
-        throw new Error(detail);
-    }
-    return res.json();
+    const res = await BASE_ENDPOINT<BodyType, ReturnType>(endpoint, "POST", body, error);
+    return res ? (res as ReturnType) : ({} as ReturnType);
 }
 
 /**
  * Makes a PATCH request to the specified endpoint with the provided body. Used for partial updates.
  */
 export async function PATCH_ENDPOINT<BodyType, ReturnType>(endpoint: string, body: BodyType, error?: string): Promise<ReturnType> {
-    const res = await fetch(`${BASE}${endpoint}`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-    });
-    if (!res.ok) {
-        let detail = error ? error : `PATCH Request to '${endpoint}' Failed`;
-        try {
-            const data = await res.json();
-            detail = data.detail || detail;
-        } catch (err) {
-            // Ignore JSON parse errors
-            void err;
-        }
-        throw new Error(detail);
-    }
-    return res.json();
+    const res = await BASE_ENDPOINT<BodyType, ReturnType>(endpoint, "PATCH", body, error);
+    return res ? (res as ReturnType) : ({} as ReturnType);
 }
 
 /**
  * Makes a DELETE request to the specified endpoint. Used to delete resources.
  */
 export async function DELETE_ENDPOINT(endpoint: string, error?: string): Promise<boolean> {
-    const res = await fetch(`${BASE}${endpoint}`, {
-        method: "DELETE",
-        credentials: "include",
-    });
-    if (!res.ok) {
-        let detail = error ? error : `DELETE Request to '${endpoint}' Failed`;
-        try {
-            const data = await res.json();
-            detail = data.detail || detail;
-        } catch (err) {
-            // Ignore JSON parse errors
-            void err;
-        }
-        throw new Error(detail);
-    }
-    return res.json();
+    const res = await BASE_ENDPOINT<null, boolean>(endpoint, "DELETE", undefined, error);
+    return res ? res : false;
 }
 
 // === Generic Schema API Interface Type ===

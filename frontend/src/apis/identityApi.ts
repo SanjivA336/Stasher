@@ -1,42 +1,5 @@
-import { GET_ENDPOINT, POST_ENDPOINT, BaseAPI } from "@apis/apiCore";
+import { GET_ENDPOINT, BaseAPI } from "@apis/apiCore";
 import type { User, Member, Stash, Item, Event, Order, UserPayload, MemberPayload } from "@apis/schemas";
-
-// === Auth ===
-export class AuthAPI {
-
-    static async login(email: string, password_current: string) : Promise<User> {
-        const payload: UserPayload = {
-            email: email,
-            password_current: password_current
-        };
-        return POST_ENDPOINT<UserPayload, User>('/login', payload);
-    }
-
-    static async register(username: string, email: string, password_current: string) : Promise<User> {
-        const payload: UserPayload = {
-            username: username,
-            email: email,
-            password_current: password_current,
-        };
-        return POST_ENDPOINT<UserPayload, User>('/register', payload);
-    }
-
-    static async authenticate(): Promise<User> {
-        return POST_ENDPOINT<null, User>('/authenticate', null);
-    }
-
-    static async refresh() {
-        return POST_ENDPOINT('/refresh', {});
-    }
-
-    static async firebase_token(): Promise<string> {
-        return POST_ENDPOINT<null, string>('/firebase-token', null);
-    }
-
-    static async logout() {
-        return POST_ENDPOINT('/logout', {});
-    }
-}
 
 // === Current ===
 export class CurrentAPI {
@@ -74,6 +37,10 @@ export class UserAPI extends BaseAPI {
 
     static async update(payload: UserPayload): Promise<User> {
         return await this._update<UserPayload, User>(payload);
+    }
+
+    static async create(payload: UserPayload): Promise<User> {
+        return await super._create<UserPayload, User>(payload);
     }
 
     // === Additional User-Specific Methods ===
