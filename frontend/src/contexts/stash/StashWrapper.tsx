@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStash } from "./StashContextValue";
-import NotFound from "@pages/404NotFound";
+import NotFound from "@/pages/public/404NotFound";
 
 export function StashRoute({ children }: { children: React.ReactNode }) {
     const { stashId, loadingContext, loadingStash } = useStash();

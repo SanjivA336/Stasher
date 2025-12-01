@@ -17,3 +17,16 @@ export function copyToClipboard(text: string): boolean {
     });
     return true;
 }
+
+export function fuzzyScore(label: string, term: string) {
+    let score = 0;
+    let ti = 0;
+    for (let li = 0; li < label.length && ti < term.length; li++) {
+        if (label[li] === term[ti]) {
+            score += 5;
+            if (li > 0 && label[li - 1] === term[ti - 1]) score += 3;
+            ti++;
+        }
+    }
+    return score;
+}

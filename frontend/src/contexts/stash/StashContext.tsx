@@ -180,6 +180,7 @@ export const StashProvider = ({ children }: { children: React.ReactNode }) => {
                 items,
                 orders,
 
+                loadingAny: loadingStash || loadingMembers || loadingStorages || loadingLabels || loadingItems || loadingOrders,
                 loadingStash,
                 loadingMembers,
                 loadingStorages,

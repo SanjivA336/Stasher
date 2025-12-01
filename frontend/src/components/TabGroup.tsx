@@ -10,7 +10,7 @@ type TabGroupProps = {
 const TabGroup = ({ tab, setTab, tabs, horizontal = true }: TabGroupProps) => {
 
     return (
-        <div className={`m-2 justify-center flex ${horizontal ? 'flex-row' : 'flex-col'} gap-2`}>
+        <div className={`m-2 w-full flex ${horizontal ? 'flex-row' : 'flex-col'} gap-2`}>
             {tabs.map((tabName, index) => (
                 <button
                     key={index}

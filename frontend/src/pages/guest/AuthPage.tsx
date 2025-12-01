@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/auth/AuthContextValue";
 import { useToast } from "@/contexts/toasts/ToastContextValue";
 import { getError } from "@/utils/utilities";
+import { ButtonField } from "@/components/Fields";
 
 export default function AuthPage() {
     const { login, register, authLoading, actionLoading } = useAuth();
@@ -52,10 +53,13 @@ export default function AuthPage() {
                 )}
 
                 <div className="flex flex-col gap-1">
-                    <button type="button" onClick={handleSubmit} disabled={authLoading  || actionLoading} className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition">
+                    <ButtonField
+                        onClick={handleSubmit} 
+                        loading={authLoading  || actionLoading}
+                        style="rounded"
+                        className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition">
                         {isLogin ? "Login" : "Register"}
-                        {(authLoading || actionLoading) && "..."}
-                    </button>
+                    </ButtonField>
                     <p>Already have an account? <span className="text-blue-500 cursor-pointer" onClick={() => setIsLogin(!isLogin)}>{isLogin ? "Register" : "Login"} Here</span></p>
                 </div>
             </form>

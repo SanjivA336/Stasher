@@ -13,6 +13,7 @@ export type StashContextTypeUnsafe = {
     items: Map<string, Item>;
     orders: Map<string, Order>;
 
+    loadingAny: boolean;
     loadingStash: boolean;
     loadingMembers: boolean;
     loadingStorages: boolean;
@@ -32,6 +33,7 @@ export type StashContextType = {
     items: Map<string, Item>;
     orders: Map<string, Order>;
 
+    loadingAny: boolean;
     loadingStash: boolean;
     loadingMembers: boolean;
     loadingStorages: boolean;
@@ -74,6 +76,7 @@ export const useStashData = (): StashContextType => {
         items: context.items,
         orders: context.orders,
 
+        loadingAny: context.loadingStash || context.loadingMembers || context.loadingStorages || context.loadingLabels || context.loadingItems || context.loadingOrders,
         loadingStash: context.loadingStash,
         loadingMembers: context.loadingMembers,
         loadingStorages: context.loadingStorages,

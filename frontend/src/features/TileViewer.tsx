@@ -1,4 +1,6 @@
 import { StorageType, type BaseDocument, type Storage } from "@/apis/schemas";
+import { ButtonField, NumberField } from "@/components/Fields";
+import { useState } from "react";
 
 type TileRendererProps<T extends BaseDocument> = {
     item: T;
@@ -19,20 +21,29 @@ type TileViewerProps<T extends BaseDocument> = {
     maxSelection?: number;
     maxSelectionBehavior?: 'disable' | 'deselect';
 
+    pageLimit?: number;
+
     className?: string;
 };
 
-export function TileViewer<T extends BaseDocument>({ items, renderTile, style = 'list', onClick, selected, setSelected, maxSelection = 1, maxSelectionBehavior = 'disable', className }: TileViewerProps<T>) {
+export function TileViewer<T extends BaseDocument>({ items, renderTile, style = 'list', onClick, selected, setSelected, maxSelection = 1, maxSelectionBehavior = 'disable', pageLimit = -1, className }: TileViewerProps<T>) {
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const maxPage = pageLimit > 0 ? Math.ceil(items.length / pageLimit) : 1;
 
     if (onClick && (selected || setSelected)) {
         console.error("TileViewer: Cannot use onClick with selection props.");
         return null;
     }
 
+    if (pageLimit > 0) {
+        items = items.slice(pageLimit * (currentPage - 1), pageLimit * currentPage);
+    }
+
     return (
         <div
             className={`
-                    w-full m-2 justify-center
+                    w-full justify-center
                     ${style === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4' : ''}
                     ${style === 'list' ? 'flex flex-col' : ''}
                     ${className}
@@ -42,39 +53,68 @@ export function TileViewer<T extends BaseDocument>({ items, renderTile, style = 
             {items.length === 0 ? (
                 <p className="text-text text-center w-full">No items to display.</p>
             ) : (
-                items.map((item) => (
-                    <div
-                        key={item.id}
-                        onClick={() => {
-                            if (onClick) {
-                                onClick(item.id);
-                                return;
-                            }
-
-                            if (selected && setSelected) {
-                                const isSelected = selected.includes(item.id);
-                                if (isSelected) {
-                                    setSelected(selected.filter((id) => id !== item.id));
-                                } else {
-                                    if (maxSelectionBehavior === 'disable' && selected.length >= maxSelection) {
-                                        return;
-                                    }
-
-                                    if (maxSelectionBehavior === 'deselect' && selected.length >= maxSelection) {
-                                        selected = selected.slice(1);
-                                    }
-
-                                    setSelected([...selected, item.id]);
+                <div className="w-full h-full flex flex-col gap-2 justify-center items-center">
+                    {items.map((item) => (
+                        <div
+                            key={item.id}
+                            className="w-full"
+                            onClick={() => {
+                                if (onClick) {
+                                    onClick(item.id);
+                                    return;
                                 }
-                            }
-                        }}>
-                            {renderTile({
-                                item: item,
-                                card: style !== 'list',
-                                isSelected: selected ? selected.includes(item.id) : false
-                            })}
-                    </div>
-                )))}
+
+                                if (selected && setSelected) {
+                                    const isSelected = selected.includes(item.id);
+                                    if (isSelected) {
+                                        setSelected(selected.filter((id) => id !== item.id));
+                                    } else {
+                                        if (maxSelectionBehavior === 'disable' && selected.length >= maxSelection) {
+                                            return;
+                                        }
+
+                                        if (maxSelectionBehavior === 'deselect' && selected.length >= maxSelection) {
+                                            selected = selected.slice(1);
+                                        }
+
+                                        setSelected([...selected, item.id]);
+                                    }
+                                }
+                            }}>
+                                {renderTile({
+                                    item: item,
+                                    card: style !== 'list',
+                                    isSelected: selected ? selected.includes(item.id) : false
+                                })}
+                        </div>
+                    ))}
+
+                    {pageLimit > 0 && maxPage > 0 && (
+                        <div className="flex flex-row gap-2">
+                            <ButtonField
+                                onClick={() => setCurrentPage(1)}
+                                disabled={currentPage === 1}
+                                className="text-nowrap border-2 border-border px-2 py-1 bg-foreground hover:bg-border disabled:opacity-50"
+                            >
+                                ⇤
+                            </ButtonField>
+                            <NumberField
+                                value={currentPage}
+                                setValue={(value) => setCurrentPage(Math.max(1, Math.min(value, maxPage)))}
+                                incrementable
+                            />
+                            <ButtonField
+                                onClick={() => setCurrentPage(maxPage)}
+                                disabled={currentPage === maxPage}
+                                className="text-nowrap border-2 border-border px-2 py-1 bg-foreground hover:bg-border disabled:opacity-50"
+                            >
+                                ⇥
+                            </ButtonField>
+
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };

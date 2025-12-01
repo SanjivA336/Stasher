@@ -8,13 +8,16 @@ import { StashProvider } from "@contexts/stash/StashContext";
 import { UserRoute, GuestRoute} from "@contexts/auth/AuthWrapper";
 import { StashRoute } from "@contexts/stash/StashWrapper";
 
-import AccessDenied from "@pages/403AccessDenied";
-import NotFound from "@pages/404NotFound";
+import AccessDenied from "@/pages/public/403AccessDenied";
+import NotFound from "@/pages/public/404NotFound";
 
-import AuthPage from "@pages/AuthPage";
-import StashLibraryPage from "@pages/StashLibraryPage";
-import StoragesPage from "@pages/StoragesPage";
-import StorageContentsPage from "./pages/StorageContentsPage";
+import AuthPage from "@/pages/guest/AuthPage";
+import StashesPage from "@/pages/user/StashesPage";
+import StoragesPage from "@/pages/user/stash-restricted/StoragesPage";
+import LabelsPage from "@/pages/user/stash-restricted/LabelsPage";
+import HistoryPage from "@/pages/user/stash-restricted/HistoryPage";
+import SettingsPage from "@/pages/user/stash-restricted/SettingsPage";
+
 
 export default function App() {
 	return (
@@ -23,15 +26,18 @@ export default function App() {
 				<AuthProvider>
 					<StashProvider>
 						<Routes>
+							{/* Guest Routes */}
 							<Route path="/auth" element={<GuestRoute><AuthPage /></GuestRoute>} />
 
 							{/* Protected Routes */}
-							<Route path="/stashes" element={<UserRoute><StashLibraryPage /></UserRoute>} />
+							<Route path="/stashes" element={<UserRoute><StashesPage /></UserRoute>} />
 							<Route path="/" element={<Navigate to="/storages" />} />
 
-							{/* Stash Required Pages - Storages */}
+							{/* Stash-Restricted Routes */}
 							<Route path="/storages" element={<UserRoute><StashRoute><StoragesPage /></StashRoute></UserRoute>} />
-							<Route path="/storages/:storageId" element={<UserRoute><StashRoute><StorageContentsPage/></StashRoute></UserRoute>} />
+							<Route path="/labels" element={<UserRoute><StashRoute><LabelsPage /></StashRoute></UserRoute>} />
+							<Route path="/history" element={<UserRoute><StashRoute><HistoryPage /></StashRoute></UserRoute>} />
+							<Route path="/settings" element={<UserRoute><StashRoute><SettingsPage /></StashRoute></UserRoute>} />
 
 							{/* Error Pages */}
 							<Route path="/403" element={<AccessDenied />} />
