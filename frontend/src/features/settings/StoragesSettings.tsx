@@ -47,7 +47,7 @@ export function StoragesSettings() {
 
                     <TileViewer<Storage>
                         items={filteredStorages}
-                        pageLimit={2}
+                        pageLimit={5}
                         renderTile={({ item }) => {
                             return (
                                 <div key={item.id} className="p-4 rounded-2xl flex flex-row justify-between items-center text-text-alt border-2 border-border bg-foreground hover:bg-accent/20 hover:border-accent hover:text-text transition-all duration-200">
@@ -64,6 +64,7 @@ export function StoragesSettings() {
                                                 setEditingStorageId(item.id);
                                                 setShowEditor(true);
                                             }}
+                                            className="px-3 py-2 border-2 border-border text-text hover:bg-accent/20 hover:border-accent/80 hover:text-text"
                                             loading={data.loadingStorages}
                                         >
                                             Edit

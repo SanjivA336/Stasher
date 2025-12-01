@@ -551,7 +551,7 @@ export function ScrollspyField({ options, offset = 0, className = "" }: Scrollsp
     }, [options, offset]);
 
     return (
-        <div className={`flex flex-col gap-2 ${className} fixed my-auto`}>
+        <div className={`flex flex-col gap-2 ${className}`}>
             {options.map((option) => (
                 <ToggleField
                     key={option.value}

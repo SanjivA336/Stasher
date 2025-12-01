@@ -55,6 +55,7 @@ export function MembersSettings() {
                                                 setEditingMemberId(item.id);
                                                 setShowEditor(true);
                                             }}
+                                            className="px-3 py-2 border-2 border-border text-text hover:bg-accent/20 hover:border-accent/80 hover:text-text"
                                             loading={data.loadingMembers}
                                         >
                                             Edit
