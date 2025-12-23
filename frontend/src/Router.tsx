@@ -39,6 +39,7 @@ export default function App() {
 							<Route path="/history" element={<UserRoute><StashRoute><HistoryPage /></StashRoute></UserRoute>} />
 							<Route path="/settings" element={<UserRoute><StashRoute><SettingsPage /></StashRoute></UserRoute>} />
 
+
 							{/* Error Pages */}
 							<Route path="/403" element={<AccessDenied />} />
 							<Route path="/404" element={<NotFound />} />

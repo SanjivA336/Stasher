@@ -5,13 +5,13 @@ type ModalProps = {
     title?: string;
 
     children: React.ReactNode;
+    tabs?: React.ReactNode;
 
     onConfirm?: () => void;
     onCancel?: () => void;
 };
 
-const Modal = ({ show, setShow, title, children, onConfirm, onCancel }: ModalProps) => {
-
+const Modal = ({ show, setShow, title, children, onConfirm, onCancel, tabs }: ModalProps) => {
     const handleConfirm = () => {
         if (onConfirm) {
             onConfirm();
@@ -30,7 +30,7 @@ const Modal = ({ show, setShow, title, children, onConfirm, onCancel }: ModalPro
     return (
         <>
             <div className={`fixed inset-0 bg-background/50 flex justify-center items-center z-50 transition-opacity duration-200 ${show ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-                <div className="w-1/2 min-h-1/2 max-h-3/4 bg-midground border-border border-2 text-text p-5 rounded-xl shadow-lg mx-auto flex flex-col">
+                <div className={`${tabs ? 'w-3/5' : 'w-1/2'} min-h-1/2 max-h-[75vh] bg-midground border-border border-2 text-text p-5 rounded-xl shadow-lg mx-auto flex flex-col`}>
                     {/* Top section */}
                     {title && (
                         <>
@@ -40,9 +40,22 @@ const Modal = ({ show, setShow, title, children, onConfirm, onCancel }: ModalPro
                     )}
 
                     {/* Middle section */}
-                    <div className="flex-grow overflow-y-auto no-scrollbar">
-                        {children}
-                    </div>
+                    {tabs ? (
+                        <div className="flex flex-row flex-grow min-h-0">
+                            <div className="w-1/4 overflow-visible border-r-2 border-border pr-2">
+                                {tabs}
+                            </div>
+                            <div className="w-3/4 overflow-y-auto no-scrollbar pl-2">
+                                {children}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex-grow overflow-y-auto no-scrollbar min-h-0">
+                            {children}
+                        </div>
+                    )}
+
+
 
 
                     {/* Bottom section */}

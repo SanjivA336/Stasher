@@ -290,68 +290,70 @@ export function DropdownField({value, setValue, options, label, placeholder, pre
     const sortedOptions = useMemo(() => sortOptions(options), [options, searchTerm]);
 
     return (
-        <div className="flex flex-col gap-1 w-full relative">
+        <div className="flex flex-col gap-1 w-full">
             {label && <label className="font-medium">{label}</label>}
-            <div className="flex flex-row items-center">
-                {prepend && (
-                    <span className="p-2 px-3 border-2 border-e-0 border-border bg-foreground text-text-alt flex rounded-s-md">
-                        {loading ? <Spinner size={24} thickness={2} color="border-text" /> : prepend}
+            <div className="relative">
+                <div className="flex flex-row items-center">
+                    {prepend && (
+                        <span className="p-2 px-3 border-2 border-e-0 border-border bg-foreground text-text-alt flex rounded-s-md">
+                            {loading ? <Spinner size={24} thickness={2} color="border-text" /> : prepend}
+                        </span>
+                    )}
+
+                    <input
+                        value={displayValue}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onFocus={() => {
+                            setFocused(true);
+                            setSearchTerm(selectedOption ? selectedOption.label : "");
+                            setShowOptions(true);
+                        }}
+                        onBlur={() => {
+                            setFocused(false);
+                            const matched = options.find(
+                                (o) => o.label.toLowerCase() === searchTerm.toLowerCase()
+                            );
+                            if (matched) {
+                                setSelectedOption(matched);
+                                setValue(matched.value);
+                            }
+                            setTimeout(() => setShowOptions(false), 100);
+                        }}
+                        placeholder={placeholder}
+                        disabled={loading || disabled || !searchable}
+                        className={`p-2 px-3 flex-grow border-2 border-border bg-background text-text disabled:cursor-not-allowed ${prepend ? "" : "rounded-s-md"}`}
+                        type="text"
+                    />
+
+                    <span
+                        onClick={() => hasOptions && setShowOptions(!showOptions)}
+                        className={`p-2 px-3 border-2 border-s-0 border-border bg-foreground text-text-alt flex rounded-e-md transition-all duration-200 ${
+                            hasOptions ? "hover:bg-border/70 cursor-pointer" : ""
+                        }`}
+                    >
+                        {loading ? <Spinner size={24} thickness={2} color="border-text" /> : hasOptions ? (showOptions ? "▲" : "▼") : "⊙"}
                     </span>
-                )}
 
-                <input
-                    value={displayValue}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onFocus={() => {
-                        setFocused(true);
-                        setSearchTerm(selectedOption ? selectedOption.label : "");
-                        setShowOptions(true);
-                    }}
-                    onBlur={() => {
-                        setFocused(false);
-                        const matched = options.find(
-                            (o) => o.label.toLowerCase() === searchTerm.toLowerCase()
-                        );
-                        if (matched) {
-                            setSelectedOption(matched);
-                            setValue(matched.value);
-                        }
-                        setTimeout(() => setShowOptions(false), 100);
-                    }}
-                    placeholder={placeholder}
-                    disabled={loading || disabled || !searchable}
-                    className={`p-2 px-3 flex-grow border-2 border-border bg-background text-text disabled:cursor-not-allowed ${prepend ? "" : "rounded-s-md"}`}
-                    type="text"
-                />
-
-                <span
-                    onClick={() => hasOptions && setShowOptions(!showOptions)}
-                    className={`p-2 px-3 border-2 border-s-0 border-border bg-foreground text-text-alt flex rounded-e-md transition-all duration-200 ${
-                        hasOptions ? "hover:bg-border/70 cursor-pointer" : ""
-                    }`}
-                >
-                    {loading ? <Spinner size={24} thickness={2} color="border-text" /> : hasOptions ? (showOptions ? "▲" : "▼") : "⊙"}
-                </span>
-
-                {hasOptions && showOptions && (
-                    <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto top-full border-2 border-border bg-foreground rounded-md shadow-lg z-50">
-                        {sortedOptions.map((option) => (
-                            <div
-                                key={option.value}
-                                onClick={() => {
-                                    setSelectedOption(option);
-                                    setSearchTerm(option.label);
-                                    setValue(option.value);
-                                    setFocused(false);
-                                    setShowOptions(false);
-                                }}
-                                className={`px-3 py-2 cursor-pointer ${isSelected(option) ? "bg-accent hover:bg-accent/80" : "bg-transparent hover:bg-accent/20"}`}
-                            >
-                                {option.label}
-                            </div>
-                        ))}
-                    </div>
-                )}
+                    {hasOptions && showOptions && (
+                        <div className="absolute left-0 right-10 mt-1 max-h-60 overflow-y-auto top-full border-2 border-border bg-foreground rounded-md shadow-lg z-50">
+                            {sortedOptions.map((option) => (
+                                <div
+                                    key={option.value}
+                                    onClick={() => {
+                                        setSelectedOption(option);
+                                        setSearchTerm(option.label);
+                                        setValue(option.value);
+                                        setFocused(false);
+                                        setShowOptions(false);
+                                    }}
+                                    className={`px-3 py-2 cursor-pointer ${isSelected(option) ? "bg-accent hover:bg-accent/80" : "bg-transparent hover:bg-accent/20"}`}
+                                >
+                                    {option.label}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -405,72 +407,74 @@ export function TagsField({values, setValues, options, label, placeholder, prepe
     const sortedOptions = useMemo(() => sortOptions(options), [options, searchTerm]);
 
     return (
-        <div className="flex flex-col gap-1 w-full relative">
+        <div className="flex flex-col gap-1 w-full">
             {label && <label className="font-medium">{label}</label>}
-            <div className="flex flex-row items-center">
-                {prepend && (
-                    <span className="p-2 px-3 border-2 border-e-0 border-border bg-foreground text-text-alt flex rounded-s-md">
-                        {loading ? <Spinner size={24} thickness={2} color="border-text" /> : prepend}
+            <div className="relative">
+                <div className="flex flex-row items-center">
+                    {prepend && (
+                        <span className="p-2 px-3 border-2 border-e-0 border-border bg-foreground text-text-alt flex rounded-s-md">
+                            {loading ? <Spinner size={24} thickness={2} color="border-text" /> : prepend}
+                        </span>
+                    )}
+
+                    <input
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onFocus={() => {
+                            setShowOptions(true);
+                            setSearchTerm("");
+                        }}
+                        onBlur={() => {
+                            setTimeout(() => {setSearchTerm(""); setShowOptions(false);}, 100);
+                        }}
+                        placeholder={placeholder}
+                        disabled={loading || disabled}
+                        className={`p-2 px-3 flex-grow border-2 border-border bg-background text-text disabled:opacity-50 disabled:cursor-not-allowed ${prepend ? "" : "rounded-s-md"}`}
+                        type="text"
+                    />
+
+                    <span
+                        onClick={() => hasOptions && setShowOptions(!showOptions)}
+                        className={`p-2 px-3 border-2 border-s-0 border-border bg-foreground text-text-alt flex rounded-e-md transition-all duration-200 ${
+                            hasOptions ? "hover:bg-border/70 cursor-pointer" : ""
+                        }`}
+                    >
+                        {loading ? <Spinner size={24} thickness={2} color="border-text" /> : hasOptions ? (showOptions ? "▲" : "▼") : "⊙"}
                     </span>
-                )}
 
-                <input
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onFocus={() => {
-                        setShowOptions(true);
-                        setSearchTerm("");
-                    }}
-                    onBlur={() => {
-                        setTimeout(() => {setSearchTerm(""); setShowOptions(false);}, 100);
-                    }}
-                    placeholder={placeholder}
-                    disabled={loading || disabled}
-                    className={`p-2 px-3 flex-grow border-2 border-border bg-background text-text disabled:opacity-50 disabled:cursor-not-allowed ${prepend ? "" : "rounded-s-md"}`}
-                    type="text"
-                />
+                    {hasOptions && showOptions && (
+                        <div className="absolute left-0 right-10 mt-1 max-h-60 overflow-y-auto top-full border-2 border-border bg-foreground rounded-md shadow-lg z-50">
+                            {sortedOptions.map((option) => (
+                                <div
+                                    key={option.value}
+                                    onClick={() => {
+                                        if (isSelected(option)) removeOption(option);
+                                        else addOption(option);
+                                    }}
+                                    className={`px-3 py-2 cursor-pointer ${isSelected(option) ? "bg-accent hover:bg-accent/80" : "bg-transparent hover:bg-accent/20"}`}
+                                >
+                                    {option.label}
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
-                <span
-                    onClick={() => hasOptions && setShowOptions(!showOptions)}
-                    className={`p-2 px-3 border-2 border-s-0 border-border bg-foreground text-text-alt flex rounded-e-md transition-all duration-200 ${
-                        hasOptions ? "hover:bg-border/70 cursor-pointer" : ""
-                    }`}
-                >
-                    {loading ? <Spinner size={24} thickness={2} color="border-text" /> : hasOptions ? (showOptions ? "▲" : "▼") : "⊙"}
-                </span>
 
-                {hasOptions && showOptions && (
-                    <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto top-full border-2 border-border bg-foreground rounded-md shadow-lg z-50">
-                        {sortedOptions.map((option) => (
-                            <div
-                                key={option.value}
-                                onClick={() => {
-                                    if (isSelected(option)) removeOption(option);
-                                    else addOption(option);
-                                }}
-                                className={`px-3 py-2 cursor-pointer ${isSelected(option) ? "bg-accent hover:bg-accent/80" : "bg-transparent hover:bg-accent/20"}`}
-                            >
-                                {option.label}
+                </div>
+                {!showOptions && selectedOptions.length > 0 && (
+                    <div className="flex flex-row flex-wrap gap-2 mt-1">
+                        {selectedOptions.map((option) => (
+                            <div key={option.value} className={`flex items-center transition-all duration-200 cursor-pointer rounded-md bg-accent hover:bg-accent/70`}>
+                                <div className={`p-1 ps-2 text-sm text-nowrap`}>
+                                    {option.label}
+                                </div>
+                                <span onClick={() => removeOption(option)} className={`p-1 pe-2 text-sm text-nowrap`}>✕</span>
                             </div>
+                            
                         ))}
                     </div>
                 )}
-
-
             </div>
-            {!showOptions && selectedOptions.length > 0 && (
-                <div className="flex flex-row flex-wrap gap-2 mt-1">
-                    {selectedOptions.map((option) => (
-                        <div key={option.value} className={`flex items-center transition-all duration-200 cursor-pointer rounded-md bg-accent hover:bg-accent/70`}>
-                            <div className={`p-1 ps-2 text-sm text-nowrap`}>
-                                {option.label}
-                            </div>
-                            <span onClick={() => removeOption(option)} className={`p-1 pe-2 text-sm text-nowrap`}>✕</span>
-                        </div>
-                        
-                    ))}
-                </div>
-            )}
         </div>
     );
 }

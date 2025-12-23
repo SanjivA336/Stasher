@@ -105,6 +105,7 @@ class StoragePayload(BasePayload):
     type: Optional[StorageType] = StorageType.PANTRY
     description: Optional[str] = None
     item_ids: Optional[List[str]] = None
+    ui_settings: Optional[UISettings] = None
 
     def to_model(self, model: 'Storage', preserve: bool) -> 'Storage':
         update_data = self.model_dump(exclude_unset=True)

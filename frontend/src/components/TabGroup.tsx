@@ -7,10 +7,10 @@ type TabGroupProps = {
 
 };
 
-const TabGroup = ({ tab, setTab, tabs, horizontal = true }: TabGroupProps) => {
+const TabGroup = ({ tab, setTab, tabs, horizontal = false }: TabGroupProps) => {
 
     return (
-        <div className={`m-2 w-full flex ${horizontal ? 'flex-row' : 'flex-col'} gap-2`}>
+        <div className={`w-full flex ${horizontal ? 'flex-row' : 'flex-col'} gap-2`}>
             {tabs.map((tabName, index) => (
                 <button
                     key={index}

@@ -32,7 +32,14 @@ export const EventType = {
 } as const;
 export type EventType = typeof EventType[keyof typeof EventType];
 
-
+// === UI Settings ===
+export interface UISettings {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    color?: string;
+}
 
 // === === Responses === ===
 
@@ -78,6 +85,7 @@ export interface Storage extends BaseDocument {
     type: StorageType;
     description?: string;
     item_ids: string[];
+    ui_settings: UISettings;
 }
 
 // === Label ===
@@ -167,6 +175,7 @@ export interface StoragePayload extends BasePayload {
     type?: StorageType;
     description?: string;
     item_ids?: string[];
+    ui_settings?: UISettings;
 }
 
 // === Label ===

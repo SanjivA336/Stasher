@@ -1,9 +1,9 @@
 import type { Member } from "@/apis/schemas";
-import { TileViewer } from "../TileViewer";
+import { TileViewer } from "@features/TileViewer";
 import { useEffect, useState } from "react";
 import { useStashData } from "@/contexts/stash/StashContextValue";
 import { ButtonField, SearchField } from "@/components/Fields";
-import { MemberEditor } from "../editors/MemberEditor";
+import { MemberEditor } from "@features/editors/MemberEditor";
 
 export function MembersSettings() {
 
@@ -44,7 +44,7 @@ export function MembersSettings() {
                                 <div key={item.id} className={`p-4 rounded-2xl flex flex-row justify-between items-center text-text-alt border-2 border-border bg-foreground ${item.is_active ? "hover:bg-accent/20 hover:border-accent hover:text-text transition-all duration-200" : ""}`}>
                                     <div className="flex flex-col gap-1 justify-center">
                                         <h3 className="text-xl text-text font-semibold flex flex-row gap-2 items-center">{item.nickname} {item.is_admin && <span className="text-xs bg-accent px-1.5 py-1 rounded-md">Admin</span>}</h3>
-                                        <p className="text-sm font-normal">Joined on {new Date(item.created_at).toLocaleDateString()}</p>
+                                        <p className="text-sm font-normal">Joined on {new Date(item.created_at).getDate().toLocaleString()}</p>
                                     </div>
                                     <div className="flex flex-col gap-1 justify-center">
                                         <h3 className="text-sm font-thin">Debt: ${debtSum}</h3>

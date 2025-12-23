@@ -41,6 +41,7 @@ export const DEFAULT_STORAGE: Storage = {
     type: StorageType.PANTRY,
     description: "A storage for my food.",
     item_ids: [],
+    ui_settings: { x: 0, y: 0, w: 1, h: 1, color: undefined },
 };
 
 // === Label template ===

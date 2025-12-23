@@ -38,6 +38,7 @@ export default function StashesPage() {
     useEffect(() => {
         fetchStashes();
         if (stash) {
+            
             navigate(`/storages`);
         }
     }, [user, stash]);
@@ -46,7 +47,9 @@ export default function StashesPage() {
         setLoading(true);
         try {
             setActiveStash(stashId);
-            navigate(`/storages`);
+            setTimeout(() => {
+                navigate(`/storages`);
+            }, 100);
         } catch (error) {
             toast('danger', getError(error));
         } finally {

@@ -270,6 +270,7 @@ class Storage(BaseDocument):
     type: 'StorageType' = Field(default_factory=lambda: StorageType.PANTRY)
     description: Optional[str] = None
     item_ids: List[str] = Field(default_factory=list)
+    ui_settings: 'UISettings' = Field(default_factory=lambda: UISettings())
     
     def get_stash(self) -> Optional[Stash]:
         from backend.database import REPO
@@ -329,6 +330,13 @@ class StorageType(str, Enum):
     PANTRY = "Pantry"
     GARDEN = "Garden"
     OTHER = "Other"
+
+class UISettings(BaseModel):
+    x: int = 0
+    y: int = 0
+    w: int = 1
+    h: int = 1
+    color: str | None = None
 
 # === Label ===
 class Label(BaseDocument):

@@ -3,6 +3,8 @@ from backend.database import REPO, fs
 from backend.models import *
 from typing import List
 
+from backend.models.models import UISettings
+
 from .identity_routes import get_current_member, get_current_user
 from .routes_helper import changes_to_string
 
@@ -263,7 +265,8 @@ def storage_create(payload: StoragePayload, current_user: User = Depends(get_cur
         stash_id=stash.id,
         type=payload.type or StorageType.PANTRY,
         description=payload.description or None,
-        item_ids=[]
+        item_ids=[],
+        ui_settings=payload.ui_settings or UISettings()
     )
     
     stash.storage_ids.append(storage.id)

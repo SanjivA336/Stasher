@@ -1,6 +1,6 @@
 import { StashAPI } from "@/apis/containerApi";
 import { EventType, type Event } from "@/apis/schemas";
-import { Spinner } from "@/components/Fields";
+import { SearchField, Spinner } from "@/components/Fields";
 import Navbar from "@/components/Navbar";
 import { useStashData } from "@/contexts/stash/StashContextValue";
 import { useToast } from "@/contexts/toasts/ToastContextValue";
@@ -16,12 +16,19 @@ export default function HistoryPage() {
 
 
     const [events, setEvents] = useState<Event[]>([]);
+    const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
 
     const fetchEvents = async () => {
         setLoading(true);
         try {
             const response: Event[] = await StashAPI.get_events(data.stash.id);
-            setEvents(response);
+
+            const sortedEvents = response.sort((a, b) => {
+                return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            });
+
+            setEvents(sortedEvents);
+            setFilteredEvents(sortedEvents);
         } catch (error) {
             toast('danger', getError(error));
         } finally {
@@ -31,12 +38,6 @@ export default function HistoryPage() {
 
     useEffect(() => {
         fetchEvents();
-
-        const sortedEvents = events.sort((a, b) => {
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        });
-
-        setEvents(sortedEvents);
     }, [data.stash.id]);
 
     return (
@@ -54,20 +55,29 @@ export default function HistoryPage() {
                 </div>
             ) : (
                 <div className="w-full max-w-2xl flex flex-col gap-2">
-                    {events.map((event: Event) => (
+                    <SearchField<Event>
+                        arr={events}
+                        setFilteredArr={setFilteredEvents}
+                        getName={(event: Event) => event.title}
+                        placeholder="Search by title..."
+                    />
+                    {filteredEvents.map((event: Event) => (
                         <div
                             key={event.id}
                             className={`
-                                p-4 gap-2 rounded-2xl flex flex-col justify-between text-text-alt border-2 bg-foreground hover:bg-accent hover:scale-105 hover:border-accent hover:text-text transition-all duration-200
-                                ${event.type === EventType.INFO ? 'border-info/30' : ''}
-                                ${event.type === EventType.WARNING ? 'border-warning/30' : ''}
-                                ${event.type === EventType.DANGER ? 'border-danger/30' : ''}
-                                ${event.type === EventType.SUCCESS ? 'border-success/30' : ''}
+                                            p-4 gap-2 rounded-lg flex flex-col justify-between text-text-alt border-2 bg-foreground hover:text-text hover:scale-105 transition-all duration-200
+                                            ${event.type === EventType.INFO ? 'border-info/30 hover:bg-info/20 hover:border-info' : ''}
+                                            ${event.type === EventType.WARNING ? 'border-warning/30 hover:bg-warning/20 hover:border-warning' : ''}
+                                            ${event.type === EventType.DANGER ? 'border-danger/30 hover:bg-danger/20 hover:border-danger' : ''}
+                                            ${event.type === EventType.SUCCESS ? 'border-success/30 hover:bg-success/20 hover:border-success' : ''}
                                 `}
                         >
-                            <div className="flex flex-row gap-1 justify-between items-center">
+                            <div className="flex flex-row gap-1 justify-between items-start">
                                 <h3 className="text-xl text-text font-semibold">{event.title}</h3>
-                                <h3 className="text-sm font-thin text-nowrap">Edited by {data.members.get(event.member_id)?.nickname ?? "Unknown Member"} at {new Date(event.updated_at).toLocaleString()}</h3>
+                                <div className="flex flex-col gap-1 justify-center">
+                                    <h3 className="text-sm font-thin text-nowrap">{new Date(event.updated_at).toLocaleString()}</h3>
+                                    <h3 className="text-sm font-thin text-nowrap">Edited by: {data.members.get(event.member_id)?.nickname ?? "Unknown Member"}</h3>
+                                </div>
                             </div>
                             <div className="flex flex-row gap-1 justify-between items-center">
                                 <p className="text-sm font-normal">{event.message}</p>
@@ -75,7 +85,6 @@ export default function HistoryPage() {
                         </div>
                     ))}
                 </div>
-
             )}
 
         </div>

@@ -53,7 +53,7 @@ export function StoragesSettings() {
                                 <div key={item.id} className="p-4 rounded-2xl flex flex-row justify-between items-center text-text-alt border-2 border-border bg-foreground hover:bg-accent/20 hover:border-accent hover:text-text transition-all duration-200">
                                     <div className="flex flex-col gap-1 justify-center">
                                         <h3 className="text-xl text-text font-semibold flex flex-row gap-2 items-center">{item.name} <span className="text-xs border-2 border-accent text-accent px-1.5 py-1 rounded-md">{item.type}</span></h3>
-                                        <p className="text-sm font-normal">Joined on {new Date(item.created_at).toLocaleDateString()}</p>
+                                        <p className="text-sm font-normal">Created on {new Date(item.created_at).getDate().toLocaleString()}</p>
                                     </div>
                                     <div className="flex flex-col gap-1 justify-center">
                                         <h3 className="text-sm font-thin">{item.item_ids.length} Items</h3>

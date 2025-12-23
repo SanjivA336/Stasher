@@ -90,6 +90,15 @@ export function LabelCreator({ showCreator, setShowCreator }: LabelCreatorProps)
                         loading={loading}
                     />
 
+                    <DropdownField
+                        value={localLabel.default_storage_id || ""}
+                        setValue={(value: string) => setLocalLabel(prev => ({...prev, default_storage_id: value}))}
+                        options={Array.from(data.storages.values()).map((storage) => ({ value: storage.id, label: storage.name }))}
+                        searchable
+                        label="Default Storage"
+                        loading={loading}
+                    />
+
             </form>
         </Modal>
     );
