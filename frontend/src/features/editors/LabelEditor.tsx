@@ -1,6 +1,6 @@
 import { LabelAPI } from "@/apis/containerApi";
 import { DEFAULT_LABEL } from "@/apis/default";
-import { type Label } from "@/apis/schemas";
+import { FoodGroup, type Label } from "@/apis/schemas";
 import { ButtonField, DropdownField, TextField } from "@/components/Fields";
 import Modal from "@/components/Modal";
 import { useStashData } from "@/contexts/stash/StashContextValue";
@@ -98,7 +98,8 @@ export function LabelEditor({ showEditor, setShowEditor, labelId }: LabelEditorP
                     <DropdownField
                         value={localLabel?.food_group || ""}
                         setValue={(value: string) => setLocalLabel(prev => ({...prev, food_group: value}))}
-                        options={["Other", "Fruits", "Vegetables", "Dairy", "Meat", "Grains"].map((group) => ({ label: group, value: group }))}
+                        options={Object.entries(FoodGroup).map(([value, label]) => ({ label, value }))}
+
                         searchable
                         label="Food Group"
                         loading={loading}

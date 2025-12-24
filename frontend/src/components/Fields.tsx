@@ -488,8 +488,9 @@ type SearchFieldProps<T> = {
     placeholder?: string;
 
     loading?: boolean;
+    setIsFiltering?: (isFiltering: boolean) => void;
 };
-export function SearchField<T>({ arr, setFilteredArr, getName, placeholder, loading }: SearchFieldProps<T>) {
+export function SearchField<T>({ arr, setFilteredArr, getName, placeholder, loading, setIsFiltering }: SearchFieldProps<T>) {
 
     const toast = useToast();
 
@@ -500,6 +501,7 @@ export function SearchField<T>({ arr, setFilteredArr, getName, placeholder, load
             value={searchTerm}
             setValue={(value) => {
                 setSearchTerm(value);
+                setIsFiltering?.(value.length > 0);
                 let filtered = arr.filter((item) => {
                     return getName(item).toLowerCase().includes(value.toLowerCase());
                 });

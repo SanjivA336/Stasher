@@ -32,6 +32,19 @@ export const EventType = {
 } as const;
 export type EventType = typeof EventType[keyof typeof EventType];
 
+// === FoodGroup ===
+export const FoodGroup = {
+    FRUITS: "Fruits",
+    VEGETABLES: "Vegetables",
+    DAIRY: "Dairy",
+    PROTEIN: "Protein",
+    GRAINS: "Grains",
+    OILS: "Oils",
+    SNACKS: "Snacks",
+    DRINKS: "Drinks",
+    MISC: "Misc"
+}
+
 // === UI Settings ===
 export interface UISettings {
     x: number;

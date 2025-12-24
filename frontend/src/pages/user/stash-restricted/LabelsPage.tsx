@@ -1,9 +1,10 @@
-import type { Label } from "@/apis/schemas";
-import { Spinner } from "@/components/Fields";
+import { FoodGroup, type Label } from "@/apis/schemas";
+import { SearchField, Spinner } from "@/components/Fields";
 import Navbar from "@/components/Navbar";
 import { useStashData } from "@/contexts/stash/StashContextValue";
 import { useToast } from "@/contexts/toasts/ToastContextValue";
 import { LabelCreator } from "@/features/creators/LabelCreator";
+import { LabelTileRenderer, TileViewer } from "@/features/TileViewer";
 import { getError } from "@/utils/utilities";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +17,9 @@ export default function LabelsPage() {
 
     const [loading, setLoading] = useState<boolean>(false);
 
+    const [isFiltering, setIsFiltering] = useState<boolean>(false);
+    const [filteredLabels, setFilteredLabels] = useState<Label[]>([]);
+
     const [showLabelCreator, setShowLabelCreator] = useState<boolean>(false);
 
     const openLabel = async (labelId: string) => {
@@ -27,11 +31,10 @@ export default function LabelsPage() {
         } finally {
             setLoading(false);
         }
-    }
-
+    };
 
     return (
-        <div className="min-h-screen flex flex-col gap-5 items-center justify-center bg-background text-text">
+        <div className="min-h-screen flex flex-col gap-5 items-center justify-center bg-background text-text mb-20">
             <Navbar />
             <h1 className="text-4xl font-bold"><span className="text-accent">{data.stash.name}</span> - Labels</h1>
 
@@ -54,25 +57,47 @@ export default function LabelsPage() {
                     <p className="text-text">Why not create one?</p>
                 </div>
             ) : (
-                <div className="w-full max-w-2xl gap-2">
-                    {Array.from(data.labels.values()).map((label: Label) => (
-                        <div
-                            key={label.id}
-                            onClick={() => openLabel(label.id)}
-                            className="p-4 rounded-2xl flex flex-row justify-between text-text-alt border-2 border-border bg-foreground hover:bg-accent hover:scale-105 hover:border-accent hover:text-text transition-all duration-200"
-                        >
-                            <div className="flex flex-col gap-1 justify-center">
-                                <h3 className="text-xl text-text font-semibold">{label.name}</h3>
-                                <p className="text-sm font-normal">{label.current_quantity} {label.preferred_unit}</p>
-                            </div>
-                            <div className="flex flex-col gap-1 justify-center">
-                                <h3 className="text-sm font-thin">{label.item_ids.length} Items</h3>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                <div className="flex flex-col w-3/4 gap-5 justify-center items-center align-middle content-center">
+                    <SearchField
+                        arr={Array.from(data.labels.values())}
+                        setFilteredArr={setFilteredLabels}
+                        getName={(label: Label) => label.name}
+                        setIsFiltering={setIsFiltering}
+                        placeholder="Search labels..."
+                    />
 
+                    {isFiltering ? (
+                        <div className="w-full">
+                            <TileViewer
+                                items={filteredLabels}
+                                renderTile={LabelTileRenderer}
+                                style="list"
+                                pageLimit={8}
+                                onClick={openLabel}
+                            />
+                        </div>
+                    ) : (
+                        Object.values(FoodGroup).map((group) => {
+                            const labelsInGroup = Array.from(data.labels.values()).filter(label => label.food_group === group);
+                            if (labelsInGroup.length === 0) return null;
+
+                            return (
+                                <div key={group} className="w-full">
+                                    <h3 className="text-2xl font-semibold mb-3 text-center">{group}</h3>
+                                    <TileViewer
+                                        items={labelsInGroup}
+                                        renderTile={LabelTileRenderer}
+                                        style="carousel"
+                                        pageLimit={6}
+                                        onClick={openLabel}
+                                    />
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
             )}
+                
 
             <LabelCreator
                 showCreator={showLabelCreator}

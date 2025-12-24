@@ -37,8 +37,9 @@
     --color-grains: #f9a825;
     --color-protein: #ff8f00;
     --color-dairy: #64b5f6;
-    --color-fats: #ffb74d;
-    --color-sugars: #e91e63;
+    --color-oils: #ffb74d;
+    --color-snacks: #e91e63;
+    --color-drinks: #ba68c8;
 
     /* === Static / overlay colors === */
     --color-shadow: rgba(0, 0, 0, 0.5);
